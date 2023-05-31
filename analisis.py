@@ -1,7 +1,7 @@
 # %%
 import ply.lex as lex
 import ply.yacc as yacc
-from arbol import Literal
+from arbol import Literal, Variable
 
 literals = ['+','-','*','/', '%', '(', ')']
 tokens = ['ID', 'INTLIT']
@@ -26,20 +26,40 @@ def t_error(t):
     t.lexer.skip(1)
 
 # %%
+
 def p_Term(p):
     '''
-    Term : Term '*' Primary
-         | Primary
+    Term : Term MulOp Factor
+         | Factor
     '''
-    if len(p) == 4:
-        p[0] = BinaryOp("*", p[1], p[3])
+    if len(p) > 2:
+        p[0] = BinaryOp(p[2], p[1], p[3])
     else:
         p[0] = p[1]
+
+
+def p_MulOp(p):
+    '''
+    MulOp : '*'
+          | '/'
+          | '%'
+    '''
+    p[0] = p[1]
+
+# def p_empty(p):
+#     'empty : '
+#     pass
+
+def p_Factor(p):
+    '''
+    Factor : Primary
+    '''
+    p[0] = p[1]
 
 def p_Primary(p):
     '''
     Primary : INTLIT 
-            | '(' Primary ')'
+            | '(' Term ')'
     '''
     if len(p) == 2:
         p[0] = Literal(p[1], 'INT')
@@ -50,41 +70,33 @@ def p_error(p):
     print("Syntax error in input!", p)
 
 
-
-
-#%%
-from arbol import Literal, BinaryOp, Calculator, Visitor, Variable
+# %%
+from arbol import Visitor, Literal, BinaryOp, Variable
 from llvmlite import ir
 
 intType = ir.IntType(32)
 
-
 class IRGenerator(Visitor):
-    def _init_(self, builder):
+    def __init__(self, builder):
         self.stack = []
         self.builder = builder
 
     def visit_literal(self, node: Literal) -> None:
         self.stack.append(intType(node.value))
-   
+    
     def visit_variable(self, node: Variable) -> None:
         pass
 
     def visit_binary_op(self, node: BinaryOp) -> None:
         node.lhs.accept(self)
         node.rhs.accept(self)
-        rhs = self.stack.pop() # estos van a ser ints
-        lhs = self.stack.pop() # estos van a ser ints
-
+        rhs = self.stack.pop()
+        lhs = self.stack.pop()
         if node.op == '+':
             self.stack.append(self.builder.add(lhs, rhs))
-        if node.op == '*':
+        elif node.op == '*':
             self.stack.append(self.builder.mul(lhs, rhs))
-        if node.op == '-':
-            self.stack.append(self.builder.sub(lhs, rhs))
-        
-            #div y srem
-            
+
 module = ir.Module(name="prog")
 
 # int main() {
@@ -94,19 +106,16 @@ func = ir.Function(module, fnty, name='main')
 entry = func.append_basic_block('entry')
 builder = ir.IRBuilder(entry)
 
-#####
-data = '10 * 5'
+data = '10 * 3'
 lexer = lex.lex()
 parser = yacc.yacc()
+ast = parser.parse(data)
+print(ast)
 
-uno = parser.parse(data)
-calc = IRGenerator(builder)
+visitor = IRGenerator(builder)
+ast.accept(visitor)
+builder.ret(visitor.stack.pop())
 
-uno.accept(calc)
-temp = calc.stack.pop()
-#####
-
-# builder.add(lhs, rhs)
-builder.ret(temp)
-# builder = calc.builder
 print(module)
+
+# %%

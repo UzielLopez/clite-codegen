@@ -1,0 +1,190 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    ID
+
+Grammar
+
+Rule 0     S' -> Term
+Rule 1     Term -> Term MulOp Factor
+Rule 2     Term -> Factor
+Rule 3     MulOp -> *
+Rule 4     MulOp -> /
+Rule 5     MulOp -> %
+Rule 6     Factor -> Primary
+Rule 7     Primary -> INTLIT
+Rule 8     Primary -> ( Term )
+
+Terminals, with rules where they appear
+
+%                    : 5
+(                    : 8
+)                    : 8
+*                    : 3
+/                    : 4
+ID                   : 
+INTLIT               : 7
+error                : 
+
+Nonterminals, with rules where they appear
+
+Factor               : 1 2
+MulOp                : 1
+Primary              : 6
+Term                 : 1 8 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . Term
+    (1) Term -> . Term MulOp Factor
+    (2) Term -> . Factor
+    (6) Factor -> . Primary
+    (7) Primary -> . INTLIT
+    (8) Primary -> . ( Term )
+
+    INTLIT          shift and go to state 4
+    (               shift and go to state 5
+
+    Term                           shift and go to state 1
+    Factor                         shift and go to state 2
+    Primary                        shift and go to state 3
+
+state 1
+
+    (0) S' -> Term .
+    (1) Term -> Term . MulOp Factor
+    (3) MulOp -> . *
+    (4) MulOp -> . /
+    (5) MulOp -> . %
+
+    *               shift and go to state 7
+    /               shift and go to state 8
+    %               shift and go to state 9
+
+    MulOp                          shift and go to state 6
+
+state 2
+
+    (2) Term -> Factor .
+
+    *               reduce using rule 2 (Term -> Factor .)
+    /               reduce using rule 2 (Term -> Factor .)
+    %               reduce using rule 2 (Term -> Factor .)
+    $end            reduce using rule 2 (Term -> Factor .)
+    )               reduce using rule 2 (Term -> Factor .)
+
+
+state 3
+
+    (6) Factor -> Primary .
+
+    *               reduce using rule 6 (Factor -> Primary .)
+    /               reduce using rule 6 (Factor -> Primary .)
+    %               reduce using rule 6 (Factor -> Primary .)
+    $end            reduce using rule 6 (Factor -> Primary .)
+    )               reduce using rule 6 (Factor -> Primary .)
+
+
+state 4
+
+    (7) Primary -> INTLIT .
+
+    *               reduce using rule 7 (Primary -> INTLIT .)
+    /               reduce using rule 7 (Primary -> INTLIT .)
+    %               reduce using rule 7 (Primary -> INTLIT .)
+    $end            reduce using rule 7 (Primary -> INTLIT .)
+    )               reduce using rule 7 (Primary -> INTLIT .)
+
+
+state 5
+
+    (8) Primary -> ( . Term )
+    (1) Term -> . Term MulOp Factor
+    (2) Term -> . Factor
+    (6) Factor -> . Primary
+    (7) Primary -> . INTLIT
+    (8) Primary -> . ( Term )
+
+    INTLIT          shift and go to state 4
+    (               shift and go to state 5
+
+    Term                           shift and go to state 10
+    Factor                         shift and go to state 2
+    Primary                        shift and go to state 3
+
+state 6
+
+    (1) Term -> Term MulOp . Factor
+    (6) Factor -> . Primary
+    (7) Primary -> . INTLIT
+    (8) Primary -> . ( Term )
+
+    INTLIT          shift and go to state 4
+    (               shift and go to state 5
+
+    Factor                         shift and go to state 11
+    Primary                        shift and go to state 3
+
+state 7
+
+    (3) MulOp -> * .
+
+    INTLIT          reduce using rule 3 (MulOp -> * .)
+    (               reduce using rule 3 (MulOp -> * .)
+
+
+state 8
+
+    (4) MulOp -> / .
+
+    INTLIT          reduce using rule 4 (MulOp -> / .)
+    (               reduce using rule 4 (MulOp -> / .)
+
+
+state 9
+
+    (5) MulOp -> % .
+
+    INTLIT          reduce using rule 5 (MulOp -> % .)
+    (               reduce using rule 5 (MulOp -> % .)
+
+
+state 10
+
+    (8) Primary -> ( Term . )
+    (1) Term -> Term . MulOp Factor
+    (3) MulOp -> . *
+    (4) MulOp -> . /
+    (5) MulOp -> . %
+
+    )               shift and go to state 12
+    *               shift and go to state 7
+    /               shift and go to state 8
+    %               shift and go to state 9
+
+    MulOp                          shift and go to state 6
+
+state 11
+
+    (1) Term -> Term MulOp Factor .
+
+    *               reduce using rule 1 (Term -> Term MulOp Factor .)
+    /               reduce using rule 1 (Term -> Term MulOp Factor .)
+    %               reduce using rule 1 (Term -> Term MulOp Factor .)
+    $end            reduce using rule 1 (Term -> Term MulOp Factor .)
+    )               reduce using rule 1 (Term -> Term MulOp Factor .)
+
+
+state 12
+
+    (8) Primary -> ( Term ) .
+
+    *               reduce using rule 8 (Primary -> ( Term ) .)
+    /               reduce using rule 8 (Primary -> ( Term ) .)
+    %               reduce using rule 8 (Primary -> ( Term ) .)
+    $end            reduce using rule 8 (Primary -> ( Term ) .)
+    )               reduce using rule 8 (Primary -> ( Term ) .)
+
