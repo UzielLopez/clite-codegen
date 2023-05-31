@@ -12,6 +12,14 @@ def t_ID(t):
      r'[a-zA-Z_][a-zA-Z_0-9]*'
      return t
 
+def t_GE(t):
+    r'>='
+    return t
+
+def t_LE(t):
+    r'<='
+    return t
+
 def t_INTLIT(t):
     r'[0-9]+'
     t.value = int(t.value)
@@ -27,6 +35,26 @@ def t_error(t):
 
 # %%
 
+def p_Relation(p):
+    '''
+    Relation : Addition
+             | Addition RelOp Add
+    '''
+    if len(p) > 2:
+        p[0] = BinaryOp(p[2], p[1], p[3])
+    else:
+        p[0] = p[1]
+
+def p_Addition(p):
+    '''
+    Addition : Term
+             | Addition AddOp Term
+    '''
+    if len(p) > 2:
+        p[0] = BinaryOp(p[2], p[1], p[3])
+    else:
+        p[0] = p[1]
+
 def p_Term(p):
     '''
     Term : Term MulOp Factor
@@ -37,6 +65,12 @@ def p_Term(p):
     else:
         p[0] = p[1]
 
+def p_AddOp(p):
+    '''
+    AddOp : '+'
+          | '-'
+    '''
+    p[0] = p[1]
 
 def p_MulOp(p):
     '''
@@ -46,10 +80,15 @@ def p_MulOp(p):
     '''
     p[0] = p[1]
 
-# def p_empty(p):
-#     'empty : '
-#     pass
-
+def p_RelOp(p):
+    '''
+    RelOp : '<'
+          | LE
+          | '>'
+          | GE 
+    '''
+    p[0] = p[1]
+      
 def p_Factor(p):
     '''
     Factor : Primary
@@ -59,12 +98,13 @@ def p_Factor(p):
 def p_Primary(p):
     '''
     Primary : INTLIT 
-            | '(' Term ')'
+            | '(' Relation ')'
     '''
     if len(p) == 2:
         p[0] = Literal(p[1], 'INT')
     else:
         p[0] = p[2]
+
         
 def p_error(p):
     print("Syntax error in input!", p)
@@ -87,6 +127,9 @@ class IRGenerator(Visitor):
     def visit_variable(self, node: Variable) -> None:
         pass
 
+    def visit_rel_op(self, node: Variable) -> None:
+        pass
+
     def visit_binary_op(self, node: BinaryOp) -> None:
         node.lhs.accept(self)
         node.rhs.accept(self)
@@ -96,6 +139,8 @@ class IRGenerator(Visitor):
             self.stack.append(self.builder.add(lhs, rhs))
         elif node.op == '*':
             self.stack.append(self.builder.mul(lhs, rhs))
+        elif node.op == '-':
+            self.stack.append(self.builder.sub(lhs, rhs))
 
 module = ir.Module(name="prog")
 
@@ -106,7 +151,7 @@ func = ir.Function(module, fnty, name='main')
 entry = func.append_basic_block('entry')
 builder = ir.IRBuilder(entry)
 
-data = '10 * 3'
+data = '10 + 3'
 lexer = lex.lex()
 parser = yacc.yacc()
 ast = parser.parse(data)
