@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = "ID INTLIT\n    Addition : Term\n             | Addition AddOp Term\n    \n    Term : Term MulOp Factor\n         | Factor\n    \n    AddOp : '+'\n          | '-'\n    \n    MulOp : '*'\n          | '/'\n          | '%'\n    \n    Factor : Primary\n    \n    Primary : INTLIT \n            | '(' Addition ')'\n    "
+_lr_signature = "GE ID INTLIT LE\n    Relation : Addition\n             | Addition RelOp Addition\n    \n    Addition : Term\n             | Addition AddOp Term\n    \n    Term : Factor\n         | Term MulOp Factor\n    \n    AddOp : '+'\n          | '-'\n    \n    MulOp : '*'\n          | '/'\n          | '%'\n    \n    RelOp : '<'\n          | LE\n          | '>'\n          | GE \n    \n    UnaryOp : '+'\n            | '-'\n    \n    Factor : UnaryOp Primary\n           | Primary\n    \n    Primary : INTLIT \n            | '(' Relation ')'\n    "
     
-_lr_action_items = {'INTLIT':([0,6,7,8,9,10,11,12,13,],[5,5,5,-5,-6,5,-7,-8,-9,]),'(':([0,6,7,8,9,10,11,12,13,],[6,6,6,-5,-6,6,-7,-8,-9,]),'$end':([1,2,3,4,5,15,16,17,],[0,-1,-4,-10,-11,-2,-3,-12,]),'+':([1,2,3,4,5,14,15,16,17,],[8,-1,-4,-10,-11,8,-2,-3,-12,]),'-':([1,2,3,4,5,14,15,16,17,],[9,-1,-4,-10,-11,9,-2,-3,-12,]),')':([2,3,4,5,14,15,16,17,],[-1,-4,-10,-11,17,-2,-3,-12,]),'*':([2,3,4,5,15,16,17,],[11,-4,-10,-11,11,-3,-12,]),'/':([2,3,4,5,15,16,17,],[12,-4,-10,-11,12,-3,-12,]),'%':([2,3,4,5,15,16,17,],[13,-4,-10,-11,13,-3,-12,]),}
+_lr_action_items = {'+':([0,2,3,4,6,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25,26,27,28,],[7,17,-3,-5,-19,-20,7,7,7,-12,-13,-14,-15,-7,-8,7,-9,-10,-11,-18,17,-4,-6,-21,]),'-':([0,2,3,4,6,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25,26,27,28,],[8,18,-3,-5,-19,-20,8,8,8,-12,-13,-14,-15,-7,-8,8,-9,-10,-11,-18,18,-4,-6,-21,]),'INTLIT':([0,5,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,],[9,9,-16,-17,9,9,9,-12,-13,-14,-15,-7,-8,9,-9,-10,-11,]),'(':([0,5,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,],[10,10,-16,-17,10,10,10,-12,-13,-14,-15,-7,-8,10,-9,-10,-11,]),'$end':([1,2,3,4,6,9,23,25,26,27,28,],[0,-1,-3,-5,-19,-20,-18,-2,-4,-6,-21,]),')':([2,3,4,6,9,23,24,25,26,27,28,],[-1,-3,-5,-19,-20,-18,28,-2,-4,-6,-21,]),'<':([2,3,4,6,9,23,26,27,28,],[13,-3,-5,-19,-20,-18,-4,-6,-21,]),'LE':([2,3,4,6,9,23,26,27,28,],[14,-3,-5,-19,-20,-18,-4,-6,-21,]),'>':([2,3,4,6,9,23,26,27,28,],[15,-3,-5,-19,-20,-18,-4,-6,-21,]),'GE':([2,3,4,6,9,23,26,27,28,],[16,-3,-5,-19,-20,-18,-4,-6,-21,]),'*':([3,4,6,9,23,26,27,28,],[20,-5,-19,-20,-18,20,-6,-21,]),'/':([3,4,6,9,23,26,27,28,],[21,-5,-19,-20,-18,21,-6,-21,]),'%':([3,4,6,9,23,26,27,28,],[22,-5,-19,-20,-18,22,-6,-21,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'Addition':([0,6,],[1,14,]),'Term':([0,6,7,],[2,2,15,]),'Factor':([0,6,7,10,],[3,3,3,16,]),'Primary':([0,6,7,10,],[4,4,4,4,]),'AddOp':([1,14,],[7,7,]),'MulOp':([2,15,],[10,10,]),}
+_lr_goto_items = {'Relation':([0,10,],[1,24,]),'Addition':([0,10,11,],[2,2,25,]),'Term':([0,10,11,12,],[3,3,3,26,]),'Factor':([0,10,11,12,19,],[4,4,4,4,27,]),'UnaryOp':([0,10,11,12,19,],[5,5,5,5,5,]),'Primary':([0,5,10,11,12,19,],[6,23,6,6,6,6,]),'RelOp':([2,],[11,]),'AddOp':([2,25,],[12,12,]),'MulOp':([3,26,],[19,19,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -26,17 +26,26 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> Addition","S'",1,None,None,None),
-  ('Addition -> Term','Addition',1,'p_Addition','analisis.py',32),
-  ('Addition -> Addition AddOp Term','Addition',3,'p_Addition','analisis.py',33),
-  ('Term -> Term MulOp Factor','Term',3,'p_Term','analisis.py',42),
-  ('Term -> Factor','Term',1,'p_Term','analisis.py',43),
-  ('AddOp -> +','AddOp',1,'p_AddOp','analisis.py',52),
-  ('AddOp -> -','AddOp',1,'p_AddOp','analisis.py',53),
-  ('MulOp -> *','MulOp',1,'p_MulOp','analisis.py',61),
-  ('MulOp -> /','MulOp',1,'p_MulOp','analisis.py',62),
-  ('MulOp -> %','MulOp',1,'p_MulOp','analisis.py',63),
-  ('Factor -> Primary','Factor',1,'p_Factor','analisis.py',69),
-  ('Primary -> INTLIT','Primary',1,'p_Primary','analisis.py',75),
-  ('Primary -> ( Addition )','Primary',3,'p_Primary','analisis.py',76),
+  ("S' -> Relation","S'",1,None,None,None),
+  ('Relation -> Addition','Relation',1,'p_Relation','analisis.py',40),
+  ('Relation -> Addition RelOp Addition','Relation',3,'p_Relation','analisis.py',41),
+  ('Addition -> Term','Addition',1,'p_Addition','analisis.py',50),
+  ('Addition -> Addition AddOp Term','Addition',3,'p_Addition','analisis.py',51),
+  ('Term -> Factor','Term',1,'p_Term','analisis.py',60),
+  ('Term -> Term MulOp Factor','Term',3,'p_Term','analisis.py',61),
+  ('AddOp -> +','AddOp',1,'p_AddOp','analisis.py',70),
+  ('AddOp -> -','AddOp',1,'p_AddOp','analisis.py',71),
+  ('MulOp -> *','MulOp',1,'p_MulOp','analisis.py',77),
+  ('MulOp -> /','MulOp',1,'p_MulOp','analisis.py',78),
+  ('MulOp -> %','MulOp',1,'p_MulOp','analisis.py',79),
+  ('RelOp -> <','RelOp',1,'p_RelOp','analisis.py',85),
+  ('RelOp -> LE','RelOp',1,'p_RelOp','analisis.py',86),
+  ('RelOp -> >','RelOp',1,'p_RelOp','analisis.py',87),
+  ('RelOp -> GE','RelOp',1,'p_RelOp','analisis.py',88),
+  ('UnaryOp -> +','UnaryOp',1,'p_UnaryOp','analisis.py',94),
+  ('UnaryOp -> -','UnaryOp',1,'p_UnaryOp','analisis.py',95),
+  ('Factor -> UnaryOp Primary','Factor',2,'p_Factor','analisis.py',101),
+  ('Factor -> Primary','Factor',1,'p_Factor','analisis.py',102),
+  ('Primary -> INTLIT','Primary',1,'p_Primary','analisis.py',108),
+  ('Primary -> ( Relation )','Primary',3,'p_Primary','analisis.py',109),
 ]

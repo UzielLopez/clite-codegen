@@ -4,7 +4,7 @@ import ply.yacc as yacc
 from arbol import Literal, Variable
 
 literals = ['+','-','*','/', '%', '(', ')']
-tokens = ['ID', 'INTLIT']
+tokens = ['ID', 'INTLIT', 'GE', 'LE']
 
 t_ignore  = ' \t'
 
@@ -38,7 +38,7 @@ def t_error(t):
 def p_Relation(p):
     '''
     Relation : Addition
-             | Addition RelOp Add
+             | Addition RelOp Addition
     '''
     if len(p) > 2:
         p[0] = BinaryOp(p[2], p[1], p[3])
@@ -57,8 +57,8 @@ def p_Addition(p):
 
 def p_Term(p):
     '''
-    Term : Term MulOp Factor
-         | Factor
+    Term : Factor
+         | Term MulOp Factor
     '''
     if len(p) > 2:
         p[0] = BinaryOp(p[2], p[1], p[3])
@@ -88,12 +88,27 @@ def p_RelOp(p):
           | GE 
     '''
     p[0] = p[1]
+
+def p_UnaryOp(p):
+    '''
+    UnaryOp : '+'
+            | '-'
+    '''
+    print("p para un unary op", p[1])
+    p[0] = p[1]
       
 def p_Factor(p):
     '''
-    Factor : Primary
+    Factor : UnaryOp Primary
+           | Primary
     '''
-    p[0] = p[1]
+    
+    if len(p) > 2 and p[1] == '-':
+        p[2].value = -p[2].value
+        p[0] = p[2]
+
+    else:
+        p[0] = p[1]
 
 def p_Primary(p):
     '''
@@ -101,6 +116,7 @@ def p_Primary(p):
             | '(' Relation ')'
     '''
     if len(p) == 2:
+        print("p para un primary ", p[1])
         p[0] = Literal(p[1], 'INT')
     else:
         p[0] = p[2]
@@ -151,11 +167,11 @@ func = ir.Function(module, fnty, name='main')
 entry = func.append_basic_block('entry')
 builder = ir.IRBuilder(entry)
 
-data = '10 + 3'
+data = '-3 + 2'
 lexer = lex.lex()
 parser = yacc.yacc()
 ast = parser.parse(data)
-print(ast)
+print(ast.lhs)
 
 visitor = IRGenerator(builder)
 ast.accept(visitor)
