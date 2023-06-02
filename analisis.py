@@ -3,14 +3,22 @@ import ply.lex as lex
 import ply.yacc as yacc
 from arbol import Literal, Variable
 
-literals = ['+','-','*','/', '%', '(', ')']
-tokens = ['ID', 'INTLIT', 'GE', 'LE']
+literals = ['+','-','*','/', '%', '(', ')', '<', '>', '!']
+tokens = ['ID', 'INTLIT', 'EQ', 'NEQ','GE', 'LE']
 
 t_ignore  = ' \t'
 
 def t_ID(t):
      r'[a-zA-Z_][a-zA-Z_0-9]*'
      return t
+
+def t_EQ(t):
+    r'=='
+    return t
+
+def t_NEQ(t):
+    r'!='
+    return t
 
 def t_GE(t):
     r'>='
@@ -35,6 +43,25 @@ def t_error(t):
 
 # %%
 
+def p_Equality(p):
+    '''
+    Equality : Relation
+             | Relation EquOp Relation
+    '''
+    if len(p) > 2:
+        print("equality", p[2], p[1], p[3])
+        p[0] = BinaryOp(p[2], p[1], p[3])
+    else:
+        p[0] = p[1]
+
+def p_EquOp(p):
+    '''
+    EquOp : EQ
+          | NEQ
+    '''
+    print("EquOp?", p[1])
+    p[0] = p[1]
+
 def p_Relation(p):
     '''
     Relation : Addition
@@ -45,20 +72,19 @@ def p_Relation(p):
     else:
         p[0] = p[1]
 
+def p_RelOp(p):
+    '''
+    RelOp : '<'
+          | LE
+          | '>'
+          | GE 
+    '''
+    p[0] = p[1]
+
 def p_Addition(p):
     '''
     Addition : Term
              | Addition AddOp Term
-    '''
-    if len(p) > 2:
-        p[0] = BinaryOp(p[2], p[1], p[3])
-    else:
-        p[0] = p[1]
-
-def p_Term(p):
-    '''
-    Term : Factor
-         | Term MulOp Factor
     '''
     if len(p) > 2:
         p[0] = BinaryOp(p[2], p[1], p[3])
@@ -72,29 +98,22 @@ def p_AddOp(p):
     '''
     p[0] = p[1]
 
+def p_Term(p):
+    '''
+    Term : Factor
+         | Term MulOp Factor
+    '''
+    if len(p) > 2:
+        p[0] = BinaryOp(p[2], p[1], p[3])
+    else:
+        p[0] = p[1]
+
 def p_MulOp(p):
     '''
     MulOp : '*'
           | '/'
           | '%'
     '''
-    p[0] = p[1]
-
-def p_RelOp(p):
-    '''
-    RelOp : '<'
-          | LE
-          | '>'
-          | GE 
-    '''
-    p[0] = p[1]
-
-def p_UnaryOp(p):
-    '''
-    UnaryOp : '+'
-            | '-'
-    '''
-    print("p para un unary op", p[1])
     p[0] = p[1]
       
 def p_Factor(p):
@@ -103,20 +122,26 @@ def p_Factor(p):
            | Primary
     '''
     
-    if len(p) > 2 and p[1] == '-':
+    if len(p) > 2:
         p[2].value = -p[2].value
         p[0] = p[2]
 
     else:
         p[0] = p[1]
 
+def p_UnaryOp(p):
+    '''
+    UnaryOp : '-'
+            | '!'
+    '''
+    p[0] = p[1]
+
 def p_Primary(p):
     '''
     Primary : INTLIT 
-            | '(' Relation ')'
+            | '(' Equality ')'
     '''
     if len(p) == 2:
-        print("p para un primary ", p[1])
         p[0] = Literal(p[1], 'INT')
     else:
         p[0] = p[2]
@@ -157,6 +182,13 @@ class IRGenerator(Visitor):
             self.stack.append(self.builder.mul(lhs, rhs))
         elif node.op == '-':
             self.stack.append(self.builder.sub(lhs, rhs))
+        elif node.op == '/':
+            self.stack.append(self.builder.sdiv(lhs, rhs))
+        elif node.op == '%':
+            self.stack.append(self.builder.srem(lhs, rhs))
+        elif node.op == '>' or node.op == '<' or node.op == '>=' \
+            or node.op == '<=' or node.op == '==' or node.op == '!=':
+            self.stack.append(self.builder.icmp_signed(node.op, lhs, rhs))
 
 module = ir.Module(name="prog")
 
@@ -167,7 +199,8 @@ func = ir.Function(module, fnty, name='main')
 entry = func.append_basic_block('entry')
 builder = ir.IRBuilder(entry)
 
-data = '-3 + 2'
+#data = '1 != 1 == 2 + 6 * 2' -> este mismo ejemplo no funciona sin los paréntesis xd
+data = '(1 != 1) == (2 + 6 * 2)'
 lexer = lex.lex()
 parser = yacc.yacc()
 ast = parser.parse(data)
