@@ -6,597 +6,752 @@ Unused terminals:
 
 Grammar
 
-Rule 0     S' -> Equality
-Rule 1     Equality -> Relation
-Rule 2     Equality -> Relation EquOp Relation
-Rule 3     EquOp -> EQ
-Rule 4     EquOp -> NEQ
-Rule 5     Relation -> Addition
-Rule 6     Relation -> Addition RelOp Addition
-Rule 7     RelOp -> <
-Rule 8     RelOp -> LE
-Rule 9     RelOp -> >
-Rule 10    RelOp -> GE
-Rule 11    Addition -> Term
-Rule 12    Addition -> Addition AddOp Term
-Rule 13    AddOp -> +
-Rule 14    AddOp -> -
-Rule 15    Term -> Factor
-Rule 16    Term -> Term MulOp Factor
-Rule 17    MulOp -> *
-Rule 18    MulOp -> /
-Rule 19    MulOp -> %
-Rule 20    Factor -> UnaryOp Primary
-Rule 21    Factor -> Primary
-Rule 22    UnaryOp -> -
-Rule 23    UnaryOp -> !
-Rule 24    Primary -> INTLIT
-Rule 25    Primary -> ( Equality )
+Rule 0     S' -> Expression
+Rule 1     Expression -> Conjunction
+Rule 2     Expression -> Expression OR Conjunction
+Rule 3     Conjunction -> Equality
+Rule 4     Conjunction -> Conjunction AND Equality
+Rule 5     Equality -> Relation
+Rule 6     Equality -> Relation EquOp Relation
+Rule 7     EquOp -> EQ
+Rule 8     EquOp -> NEQ
+Rule 9     Relation -> Addition
+Rule 10    Relation -> Addition RelOp Addition
+Rule 11    RelOp -> <
+Rule 12    RelOp -> LE
+Rule 13    RelOp -> >
+Rule 14    RelOp -> GE
+Rule 15    Addition -> Term
+Rule 16    Addition -> Addition AddOp Term
+Rule 17    AddOp -> +
+Rule 18    AddOp -> -
+Rule 19    Term -> Factor
+Rule 20    Term -> Term MulOp Factor
+Rule 21    MulOp -> *
+Rule 22    MulOp -> /
+Rule 23    MulOp -> %
+Rule 24    Factor -> UnaryOp Primary
+Rule 25    Factor -> Primary
+Rule 26    UnaryOp -> -
+Rule 27    UnaryOp -> !
+Rule 28    Primary -> INTLIT
+Rule 29    Primary -> ( Expression )
 
 Terminals, with rules where they appear
 
-!                    : 23
-%                    : 19
-(                    : 25
-)                    : 25
-*                    : 17
-+                    : 13
--                    : 14 22
-/                    : 18
-<                    : 7
->                    : 9
-EQ                   : 3
-GE                   : 10
+!                    : 27
+%                    : 23
+(                    : 29
+)                    : 29
+*                    : 21
++                    : 17
+-                    : 18 26
+/                    : 22
+<                    : 11
+>                    : 13
+AND                  : 4
+EQ                   : 7
+GE                   : 14
 ID                   : 
-INTLIT               : 24
-LE                   : 8
-NEQ                  : 4
+INTLIT               : 28
+LE                   : 12
+NEQ                  : 8
+OR                   : 2
 error                : 
 
 Nonterminals, with rules where they appear
 
-AddOp                : 12
-Addition             : 5 6 6 12
-EquOp                : 2
-Equality             : 25 0
-Factor               : 15 16
-MulOp                : 16
-Primary              : 20 21
-RelOp                : 6
-Relation             : 1 2 2
-Term                 : 11 12 16
-UnaryOp              : 20
+AddOp                : 16
+Addition             : 9 10 10 16
+Conjunction          : 1 2 4
+EquOp                : 6
+Equality             : 3 4
+Expression           : 2 29 0
+Factor               : 19 20
+MulOp                : 20
+Primary              : 24 25
+RelOp                : 10
+Relation             : 5 6 6
+Term                 : 15 16 20
+UnaryOp              : 24
 
 Parsing method: LALR
 
 state 0
 
-    (0) S' -> . Equality
-    (1) Equality -> . Relation
-    (2) Equality -> . Relation EquOp Relation
-    (5) Relation -> . Addition
-    (6) Relation -> . Addition RelOp Addition
-    (11) Addition -> . Term
-    (12) Addition -> . Addition AddOp Term
-    (15) Term -> . Factor
-    (16) Term -> . Term MulOp Factor
-    (20) Factor -> . UnaryOp Primary
-    (21) Factor -> . Primary
-    (22) UnaryOp -> . -
-    (23) UnaryOp -> . !
-    (24) Primary -> . INTLIT
-    (25) Primary -> . ( Equality )
+    (0) S' -> . Expression
+    (1) Expression -> . Conjunction
+    (2) Expression -> . Expression OR Conjunction
+    (3) Conjunction -> . Equality
+    (4) Conjunction -> . Conjunction AND Equality
+    (5) Equality -> . Relation
+    (6) Equality -> . Relation EquOp Relation
+    (9) Relation -> . Addition
+    (10) Relation -> . Addition RelOp Addition
+    (15) Addition -> . Term
+    (16) Addition -> . Addition AddOp Term
+    (19) Term -> . Factor
+    (20) Term -> . Term MulOp Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    -               shift and go to state 8
-    !               shift and go to state 9
-    INTLIT          shift and go to state 10
-    (               shift and go to state 11
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
-    Equality                       shift and go to state 1
-    Relation                       shift and go to state 2
-    Addition                       shift and go to state 3
-    Term                           shift and go to state 4
-    Factor                         shift and go to state 5
-    UnaryOp                        shift and go to state 6
-    Primary                        shift and go to state 7
+    Expression                     shift and go to state 1
+    Conjunction                    shift and go to state 2
+    Equality                       shift and go to state 3
+    Relation                       shift and go to state 4
+    Addition                       shift and go to state 5
+    Term                           shift and go to state 6
+    Factor                         shift and go to state 7
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 1
 
-    (0) S' -> Equality .
+    (0) S' -> Expression .
+    (2) Expression -> Expression . OR Conjunction
 
+    OR              shift and go to state 14
 
 
 state 2
 
-    (1) Equality -> Relation .
-    (2) Equality -> Relation . EquOp Relation
-    (3) EquOp -> . EQ
-    (4) EquOp -> . NEQ
+    (1) Expression -> Conjunction .
+    (4) Conjunction -> Conjunction . AND Equality
 
-    $end            reduce using rule 1 (Equality -> Relation .)
-    )               reduce using rule 1 (Equality -> Relation .)
-    EQ              shift and go to state 13
-    NEQ             shift and go to state 14
+    OR              reduce using rule 1 (Expression -> Conjunction .)
+    $end            reduce using rule 1 (Expression -> Conjunction .)
+    )               reduce using rule 1 (Expression -> Conjunction .)
+    AND             shift and go to state 15
 
-    EquOp                          shift and go to state 12
 
 state 3
 
-    (5) Relation -> Addition .
-    (6) Relation -> Addition . RelOp Addition
-    (12) Addition -> Addition . AddOp Term
-    (7) RelOp -> . <
-    (8) RelOp -> . LE
-    (9) RelOp -> . >
-    (10) RelOp -> . GE
-    (13) AddOp -> . +
-    (14) AddOp -> . -
+    (3) Conjunction -> Equality .
 
-    EQ              reduce using rule 5 (Relation -> Addition .)
-    NEQ             reduce using rule 5 (Relation -> Addition .)
-    $end            reduce using rule 5 (Relation -> Addition .)
-    )               reduce using rule 5 (Relation -> Addition .)
-    <               shift and go to state 17
-    LE              shift and go to state 18
-    >               shift and go to state 19
-    GE              shift and go to state 20
-    +               shift and go to state 21
-    -               shift and go to state 22
+    AND             reduce using rule 3 (Conjunction -> Equality .)
+    OR              reduce using rule 3 (Conjunction -> Equality .)
+    $end            reduce using rule 3 (Conjunction -> Equality .)
+    )               reduce using rule 3 (Conjunction -> Equality .)
 
-    RelOp                          shift and go to state 15
-    AddOp                          shift and go to state 16
 
 state 4
 
-    (11) Addition -> Term .
-    (16) Term -> Term . MulOp Factor
-    (17) MulOp -> . *
-    (18) MulOp -> . /
-    (19) MulOp -> . %
+    (5) Equality -> Relation .
+    (6) Equality -> Relation . EquOp Relation
+    (7) EquOp -> . EQ
+    (8) EquOp -> . NEQ
 
-    <               reduce using rule 11 (Addition -> Term .)
-    LE              reduce using rule 11 (Addition -> Term .)
-    >               reduce using rule 11 (Addition -> Term .)
-    GE              reduce using rule 11 (Addition -> Term .)
-    +               reduce using rule 11 (Addition -> Term .)
-    -               reduce using rule 11 (Addition -> Term .)
-    EQ              reduce using rule 11 (Addition -> Term .)
-    NEQ             reduce using rule 11 (Addition -> Term .)
-    $end            reduce using rule 11 (Addition -> Term .)
-    )               reduce using rule 11 (Addition -> Term .)
-    *               shift and go to state 24
-    /               shift and go to state 25
-    %               shift and go to state 26
+    AND             reduce using rule 5 (Equality -> Relation .)
+    OR              reduce using rule 5 (Equality -> Relation .)
+    $end            reduce using rule 5 (Equality -> Relation .)
+    )               reduce using rule 5 (Equality -> Relation .)
+    EQ              shift and go to state 17
+    NEQ             shift and go to state 18
 
-    MulOp                          shift and go to state 23
+    EquOp                          shift and go to state 16
 
 state 5
 
-    (15) Term -> Factor .
+    (9) Relation -> Addition .
+    (10) Relation -> Addition . RelOp Addition
+    (16) Addition -> Addition . AddOp Term
+    (11) RelOp -> . <
+    (12) RelOp -> . LE
+    (13) RelOp -> . >
+    (14) RelOp -> . GE
+    (17) AddOp -> . +
+    (18) AddOp -> . -
 
-    *               reduce using rule 15 (Term -> Factor .)
-    /               reduce using rule 15 (Term -> Factor .)
-    %               reduce using rule 15 (Term -> Factor .)
-    <               reduce using rule 15 (Term -> Factor .)
-    LE              reduce using rule 15 (Term -> Factor .)
-    >               reduce using rule 15 (Term -> Factor .)
-    GE              reduce using rule 15 (Term -> Factor .)
-    +               reduce using rule 15 (Term -> Factor .)
-    -               reduce using rule 15 (Term -> Factor .)
-    EQ              reduce using rule 15 (Term -> Factor .)
-    NEQ             reduce using rule 15 (Term -> Factor .)
-    $end            reduce using rule 15 (Term -> Factor .)
-    )               reduce using rule 15 (Term -> Factor .)
+    EQ              reduce using rule 9 (Relation -> Addition .)
+    NEQ             reduce using rule 9 (Relation -> Addition .)
+    AND             reduce using rule 9 (Relation -> Addition .)
+    OR              reduce using rule 9 (Relation -> Addition .)
+    $end            reduce using rule 9 (Relation -> Addition .)
+    )               reduce using rule 9 (Relation -> Addition .)
+    <               shift and go to state 21
+    LE              shift and go to state 22
+    >               shift and go to state 23
+    GE              shift and go to state 24
+    +               shift and go to state 25
+    -               shift and go to state 26
 
+    RelOp                          shift and go to state 19
+    AddOp                          shift and go to state 20
 
 state 6
 
-    (20) Factor -> UnaryOp . Primary
-    (24) Primary -> . INTLIT
-    (25) Primary -> . ( Equality )
+    (15) Addition -> Term .
+    (20) Term -> Term . MulOp Factor
+    (21) MulOp -> . *
+    (22) MulOp -> . /
+    (23) MulOp -> . %
 
-    INTLIT          shift and go to state 10
-    (               shift and go to state 11
+    <               reduce using rule 15 (Addition -> Term .)
+    LE              reduce using rule 15 (Addition -> Term .)
+    >               reduce using rule 15 (Addition -> Term .)
+    GE              reduce using rule 15 (Addition -> Term .)
+    +               reduce using rule 15 (Addition -> Term .)
+    -               reduce using rule 15 (Addition -> Term .)
+    EQ              reduce using rule 15 (Addition -> Term .)
+    NEQ             reduce using rule 15 (Addition -> Term .)
+    AND             reduce using rule 15 (Addition -> Term .)
+    OR              reduce using rule 15 (Addition -> Term .)
+    $end            reduce using rule 15 (Addition -> Term .)
+    )               reduce using rule 15 (Addition -> Term .)
+    *               shift and go to state 28
+    /               shift and go to state 29
+    %               shift and go to state 30
 
-    Primary                        shift and go to state 27
+    MulOp                          shift and go to state 27
 
 state 7
 
-    (21) Factor -> Primary .
+    (19) Term -> Factor .
 
-    *               reduce using rule 21 (Factor -> Primary .)
-    /               reduce using rule 21 (Factor -> Primary .)
-    %               reduce using rule 21 (Factor -> Primary .)
-    <               reduce using rule 21 (Factor -> Primary .)
-    LE              reduce using rule 21 (Factor -> Primary .)
-    >               reduce using rule 21 (Factor -> Primary .)
-    GE              reduce using rule 21 (Factor -> Primary .)
-    +               reduce using rule 21 (Factor -> Primary .)
-    -               reduce using rule 21 (Factor -> Primary .)
-    EQ              reduce using rule 21 (Factor -> Primary .)
-    NEQ             reduce using rule 21 (Factor -> Primary .)
-    $end            reduce using rule 21 (Factor -> Primary .)
-    )               reduce using rule 21 (Factor -> Primary .)
+    *               reduce using rule 19 (Term -> Factor .)
+    /               reduce using rule 19 (Term -> Factor .)
+    %               reduce using rule 19 (Term -> Factor .)
+    <               reduce using rule 19 (Term -> Factor .)
+    LE              reduce using rule 19 (Term -> Factor .)
+    >               reduce using rule 19 (Term -> Factor .)
+    GE              reduce using rule 19 (Term -> Factor .)
+    +               reduce using rule 19 (Term -> Factor .)
+    -               reduce using rule 19 (Term -> Factor .)
+    EQ              reduce using rule 19 (Term -> Factor .)
+    NEQ             reduce using rule 19 (Term -> Factor .)
+    AND             reduce using rule 19 (Term -> Factor .)
+    OR              reduce using rule 19 (Term -> Factor .)
+    $end            reduce using rule 19 (Term -> Factor .)
+    )               reduce using rule 19 (Term -> Factor .)
 
 
 state 8
 
-    (22) UnaryOp -> - .
+    (24) Factor -> UnaryOp . Primary
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    INTLIT          reduce using rule 22 (UnaryOp -> - .)
-    (               reduce using rule 22 (UnaryOp -> - .)
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
+    Primary                        shift and go to state 31
 
 state 9
 
-    (23) UnaryOp -> ! .
+    (25) Factor -> Primary .
 
-    INTLIT          reduce using rule 23 (UnaryOp -> ! .)
-    (               reduce using rule 23 (UnaryOp -> ! .)
+    *               reduce using rule 25 (Factor -> Primary .)
+    /               reduce using rule 25 (Factor -> Primary .)
+    %               reduce using rule 25 (Factor -> Primary .)
+    <               reduce using rule 25 (Factor -> Primary .)
+    LE              reduce using rule 25 (Factor -> Primary .)
+    >               reduce using rule 25 (Factor -> Primary .)
+    GE              reduce using rule 25 (Factor -> Primary .)
+    +               reduce using rule 25 (Factor -> Primary .)
+    -               reduce using rule 25 (Factor -> Primary .)
+    EQ              reduce using rule 25 (Factor -> Primary .)
+    NEQ             reduce using rule 25 (Factor -> Primary .)
+    AND             reduce using rule 25 (Factor -> Primary .)
+    OR              reduce using rule 25 (Factor -> Primary .)
+    $end            reduce using rule 25 (Factor -> Primary .)
+    )               reduce using rule 25 (Factor -> Primary .)
 
 
 state 10
 
-    (24) Primary -> INTLIT .
+    (26) UnaryOp -> - .
 
-    *               reduce using rule 24 (Primary -> INTLIT .)
-    /               reduce using rule 24 (Primary -> INTLIT .)
-    %               reduce using rule 24 (Primary -> INTLIT .)
-    <               reduce using rule 24 (Primary -> INTLIT .)
-    LE              reduce using rule 24 (Primary -> INTLIT .)
-    >               reduce using rule 24 (Primary -> INTLIT .)
-    GE              reduce using rule 24 (Primary -> INTLIT .)
-    +               reduce using rule 24 (Primary -> INTLIT .)
-    -               reduce using rule 24 (Primary -> INTLIT .)
-    EQ              reduce using rule 24 (Primary -> INTLIT .)
-    NEQ             reduce using rule 24 (Primary -> INTLIT .)
-    $end            reduce using rule 24 (Primary -> INTLIT .)
-    )               reduce using rule 24 (Primary -> INTLIT .)
+    INTLIT          reduce using rule 26 (UnaryOp -> - .)
+    (               reduce using rule 26 (UnaryOp -> - .)
 
 
 state 11
 
-    (25) Primary -> ( . Equality )
-    (1) Equality -> . Relation
-    (2) Equality -> . Relation EquOp Relation
-    (5) Relation -> . Addition
-    (6) Relation -> . Addition RelOp Addition
-    (11) Addition -> . Term
-    (12) Addition -> . Addition AddOp Term
-    (15) Term -> . Factor
-    (16) Term -> . Term MulOp Factor
-    (20) Factor -> . UnaryOp Primary
-    (21) Factor -> . Primary
-    (22) UnaryOp -> . -
-    (23) UnaryOp -> . !
-    (24) Primary -> . INTLIT
-    (25) Primary -> . ( Equality )
+    (27) UnaryOp -> ! .
 
-    -               shift and go to state 8
-    !               shift and go to state 9
-    INTLIT          shift and go to state 10
-    (               shift and go to state 11
+    INTLIT          reduce using rule 27 (UnaryOp -> ! .)
+    (               reduce using rule 27 (UnaryOp -> ! .)
 
-    Equality                       shift and go to state 28
-    Relation                       shift and go to state 2
-    Addition                       shift and go to state 3
-    Term                           shift and go to state 4
-    Factor                         shift and go to state 5
-    UnaryOp                        shift and go to state 6
-    Primary                        shift and go to state 7
 
 state 12
 
-    (2) Equality -> Relation EquOp . Relation
-    (5) Relation -> . Addition
-    (6) Relation -> . Addition RelOp Addition
-    (11) Addition -> . Term
-    (12) Addition -> . Addition AddOp Term
-    (15) Term -> . Factor
-    (16) Term -> . Term MulOp Factor
-    (20) Factor -> . UnaryOp Primary
-    (21) Factor -> . Primary
-    (22) UnaryOp -> . -
-    (23) UnaryOp -> . !
-    (24) Primary -> . INTLIT
-    (25) Primary -> . ( Equality )
+    (28) Primary -> INTLIT .
 
-    -               shift and go to state 8
-    !               shift and go to state 9
-    INTLIT          shift and go to state 10
-    (               shift and go to state 11
+    *               reduce using rule 28 (Primary -> INTLIT .)
+    /               reduce using rule 28 (Primary -> INTLIT .)
+    %               reduce using rule 28 (Primary -> INTLIT .)
+    <               reduce using rule 28 (Primary -> INTLIT .)
+    LE              reduce using rule 28 (Primary -> INTLIT .)
+    >               reduce using rule 28 (Primary -> INTLIT .)
+    GE              reduce using rule 28 (Primary -> INTLIT .)
+    +               reduce using rule 28 (Primary -> INTLIT .)
+    -               reduce using rule 28 (Primary -> INTLIT .)
+    EQ              reduce using rule 28 (Primary -> INTLIT .)
+    NEQ             reduce using rule 28 (Primary -> INTLIT .)
+    AND             reduce using rule 28 (Primary -> INTLIT .)
+    OR              reduce using rule 28 (Primary -> INTLIT .)
+    $end            reduce using rule 28 (Primary -> INTLIT .)
+    )               reduce using rule 28 (Primary -> INTLIT .)
 
-    Relation                       shift and go to state 29
-    Addition                       shift and go to state 3
-    Term                           shift and go to state 4
-    Factor                         shift and go to state 5
-    UnaryOp                        shift and go to state 6
-    Primary                        shift and go to state 7
 
 state 13
 
-    (3) EquOp -> EQ .
+    (29) Primary -> ( . Expression )
+    (1) Expression -> . Conjunction
+    (2) Expression -> . Expression OR Conjunction
+    (3) Conjunction -> . Equality
+    (4) Conjunction -> . Conjunction AND Equality
+    (5) Equality -> . Relation
+    (6) Equality -> . Relation EquOp Relation
+    (9) Relation -> . Addition
+    (10) Relation -> . Addition RelOp Addition
+    (15) Addition -> . Term
+    (16) Addition -> . Addition AddOp Term
+    (19) Term -> . Factor
+    (20) Term -> . Term MulOp Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    -               reduce using rule 3 (EquOp -> EQ .)
-    !               reduce using rule 3 (EquOp -> EQ .)
-    INTLIT          reduce using rule 3 (EquOp -> EQ .)
-    (               reduce using rule 3 (EquOp -> EQ .)
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
+    Expression                     shift and go to state 32
+    Conjunction                    shift and go to state 2
+    Equality                       shift and go to state 3
+    Relation                       shift and go to state 4
+    Addition                       shift and go to state 5
+    Term                           shift and go to state 6
+    Factor                         shift and go to state 7
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 14
 
-    (4) EquOp -> NEQ .
+    (2) Expression -> Expression OR . Conjunction
+    (3) Conjunction -> . Equality
+    (4) Conjunction -> . Conjunction AND Equality
+    (5) Equality -> . Relation
+    (6) Equality -> . Relation EquOp Relation
+    (9) Relation -> . Addition
+    (10) Relation -> . Addition RelOp Addition
+    (15) Addition -> . Term
+    (16) Addition -> . Addition AddOp Term
+    (19) Term -> . Factor
+    (20) Term -> . Term MulOp Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    -               reduce using rule 4 (EquOp -> NEQ .)
-    !               reduce using rule 4 (EquOp -> NEQ .)
-    INTLIT          reduce using rule 4 (EquOp -> NEQ .)
-    (               reduce using rule 4 (EquOp -> NEQ .)
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
+    Conjunction                    shift and go to state 33
+    Equality                       shift and go to state 3
+    Relation                       shift and go to state 4
+    Addition                       shift and go to state 5
+    Term                           shift and go to state 6
+    Factor                         shift and go to state 7
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 15
 
-    (6) Relation -> Addition RelOp . Addition
-    (11) Addition -> . Term
-    (12) Addition -> . Addition AddOp Term
-    (15) Term -> . Factor
-    (16) Term -> . Term MulOp Factor
-    (20) Factor -> . UnaryOp Primary
-    (21) Factor -> . Primary
-    (22) UnaryOp -> . -
-    (23) UnaryOp -> . !
-    (24) Primary -> . INTLIT
-    (25) Primary -> . ( Equality )
+    (4) Conjunction -> Conjunction AND . Equality
+    (5) Equality -> . Relation
+    (6) Equality -> . Relation EquOp Relation
+    (9) Relation -> . Addition
+    (10) Relation -> . Addition RelOp Addition
+    (15) Addition -> . Term
+    (16) Addition -> . Addition AddOp Term
+    (19) Term -> . Factor
+    (20) Term -> . Term MulOp Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    -               shift and go to state 8
-    !               shift and go to state 9
-    INTLIT          shift and go to state 10
-    (               shift and go to state 11
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
-    Addition                       shift and go to state 30
-    Term                           shift and go to state 4
-    Factor                         shift and go to state 5
-    UnaryOp                        shift and go to state 6
-    Primary                        shift and go to state 7
+    Equality                       shift and go to state 34
+    Relation                       shift and go to state 4
+    Addition                       shift and go to state 5
+    Term                           shift and go to state 6
+    Factor                         shift and go to state 7
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 16
 
-    (12) Addition -> Addition AddOp . Term
-    (15) Term -> . Factor
-    (16) Term -> . Term MulOp Factor
-    (20) Factor -> . UnaryOp Primary
-    (21) Factor -> . Primary
-    (22) UnaryOp -> . -
-    (23) UnaryOp -> . !
-    (24) Primary -> . INTLIT
-    (25) Primary -> . ( Equality )
+    (6) Equality -> Relation EquOp . Relation
+    (9) Relation -> . Addition
+    (10) Relation -> . Addition RelOp Addition
+    (15) Addition -> . Term
+    (16) Addition -> . Addition AddOp Term
+    (19) Term -> . Factor
+    (20) Term -> . Term MulOp Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    -               shift and go to state 8
-    !               shift and go to state 9
-    INTLIT          shift and go to state 10
-    (               shift and go to state 11
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
-    Term                           shift and go to state 31
-    Factor                         shift and go to state 5
-    UnaryOp                        shift and go to state 6
-    Primary                        shift and go to state 7
+    Relation                       shift and go to state 35
+    Addition                       shift and go to state 5
+    Term                           shift and go to state 6
+    Factor                         shift and go to state 7
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 17
 
-    (7) RelOp -> < .
+    (7) EquOp -> EQ .
 
-    -               reduce using rule 7 (RelOp -> < .)
-    !               reduce using rule 7 (RelOp -> < .)
-    INTLIT          reduce using rule 7 (RelOp -> < .)
-    (               reduce using rule 7 (RelOp -> < .)
+    -               reduce using rule 7 (EquOp -> EQ .)
+    !               reduce using rule 7 (EquOp -> EQ .)
+    INTLIT          reduce using rule 7 (EquOp -> EQ .)
+    (               reduce using rule 7 (EquOp -> EQ .)
 
 
 state 18
 
-    (8) RelOp -> LE .
+    (8) EquOp -> NEQ .
 
-    -               reduce using rule 8 (RelOp -> LE .)
-    !               reduce using rule 8 (RelOp -> LE .)
-    INTLIT          reduce using rule 8 (RelOp -> LE .)
-    (               reduce using rule 8 (RelOp -> LE .)
+    -               reduce using rule 8 (EquOp -> NEQ .)
+    !               reduce using rule 8 (EquOp -> NEQ .)
+    INTLIT          reduce using rule 8 (EquOp -> NEQ .)
+    (               reduce using rule 8 (EquOp -> NEQ .)
 
 
 state 19
 
-    (9) RelOp -> > .
+    (10) Relation -> Addition RelOp . Addition
+    (15) Addition -> . Term
+    (16) Addition -> . Addition AddOp Term
+    (19) Term -> . Factor
+    (20) Term -> . Term MulOp Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    -               reduce using rule 9 (RelOp -> > .)
-    !               reduce using rule 9 (RelOp -> > .)
-    INTLIT          reduce using rule 9 (RelOp -> > .)
-    (               reduce using rule 9 (RelOp -> > .)
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
+    Addition                       shift and go to state 36
+    Term                           shift and go to state 6
+    Factor                         shift and go to state 7
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 20
 
-    (10) RelOp -> GE .
+    (16) Addition -> Addition AddOp . Term
+    (19) Term -> . Factor
+    (20) Term -> . Term MulOp Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    -               reduce using rule 10 (RelOp -> GE .)
-    !               reduce using rule 10 (RelOp -> GE .)
-    INTLIT          reduce using rule 10 (RelOp -> GE .)
-    (               reduce using rule 10 (RelOp -> GE .)
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
+    Term                           shift and go to state 37
+    Factor                         shift and go to state 7
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 21
 
-    (13) AddOp -> + .
+    (11) RelOp -> < .
 
-    -               reduce using rule 13 (AddOp -> + .)
-    !               reduce using rule 13 (AddOp -> + .)
-    INTLIT          reduce using rule 13 (AddOp -> + .)
-    (               reduce using rule 13 (AddOp -> + .)
+    -               reduce using rule 11 (RelOp -> < .)
+    !               reduce using rule 11 (RelOp -> < .)
+    INTLIT          reduce using rule 11 (RelOp -> < .)
+    (               reduce using rule 11 (RelOp -> < .)
 
 
 state 22
 
-    (14) AddOp -> - .
+    (12) RelOp -> LE .
 
-    -               reduce using rule 14 (AddOp -> - .)
-    !               reduce using rule 14 (AddOp -> - .)
-    INTLIT          reduce using rule 14 (AddOp -> - .)
-    (               reduce using rule 14 (AddOp -> - .)
+    -               reduce using rule 12 (RelOp -> LE .)
+    !               reduce using rule 12 (RelOp -> LE .)
+    INTLIT          reduce using rule 12 (RelOp -> LE .)
+    (               reduce using rule 12 (RelOp -> LE .)
 
 
 state 23
 
-    (16) Term -> Term MulOp . Factor
-    (20) Factor -> . UnaryOp Primary
-    (21) Factor -> . Primary
-    (22) UnaryOp -> . -
-    (23) UnaryOp -> . !
-    (24) Primary -> . INTLIT
-    (25) Primary -> . ( Equality )
+    (13) RelOp -> > .
 
-    -               shift and go to state 8
-    !               shift and go to state 9
-    INTLIT          shift and go to state 10
-    (               shift and go to state 11
+    -               reduce using rule 13 (RelOp -> > .)
+    !               reduce using rule 13 (RelOp -> > .)
+    INTLIT          reduce using rule 13 (RelOp -> > .)
+    (               reduce using rule 13 (RelOp -> > .)
 
-    Factor                         shift and go to state 32
-    UnaryOp                        shift and go to state 6
-    Primary                        shift and go to state 7
 
 state 24
 
-    (17) MulOp -> * .
+    (14) RelOp -> GE .
 
-    -               reduce using rule 17 (MulOp -> * .)
-    !               reduce using rule 17 (MulOp -> * .)
-    INTLIT          reduce using rule 17 (MulOp -> * .)
-    (               reduce using rule 17 (MulOp -> * .)
+    -               reduce using rule 14 (RelOp -> GE .)
+    !               reduce using rule 14 (RelOp -> GE .)
+    INTLIT          reduce using rule 14 (RelOp -> GE .)
+    (               reduce using rule 14 (RelOp -> GE .)
 
 
 state 25
 
-    (18) MulOp -> / .
+    (17) AddOp -> + .
 
-    -               reduce using rule 18 (MulOp -> / .)
-    !               reduce using rule 18 (MulOp -> / .)
-    INTLIT          reduce using rule 18 (MulOp -> / .)
-    (               reduce using rule 18 (MulOp -> / .)
+    -               reduce using rule 17 (AddOp -> + .)
+    !               reduce using rule 17 (AddOp -> + .)
+    INTLIT          reduce using rule 17 (AddOp -> + .)
+    (               reduce using rule 17 (AddOp -> + .)
 
 
 state 26
 
-    (19) MulOp -> % .
+    (18) AddOp -> - .
 
-    -               reduce using rule 19 (MulOp -> % .)
-    !               reduce using rule 19 (MulOp -> % .)
-    INTLIT          reduce using rule 19 (MulOp -> % .)
-    (               reduce using rule 19 (MulOp -> % .)
+    -               reduce using rule 18 (AddOp -> - .)
+    !               reduce using rule 18 (AddOp -> - .)
+    INTLIT          reduce using rule 18 (AddOp -> - .)
+    (               reduce using rule 18 (AddOp -> - .)
 
 
 state 27
 
-    (20) Factor -> UnaryOp Primary .
+    (20) Term -> Term MulOp . Factor
+    (24) Factor -> . UnaryOp Primary
+    (25) Factor -> . Primary
+    (26) UnaryOp -> . -
+    (27) UnaryOp -> . !
+    (28) Primary -> . INTLIT
+    (29) Primary -> . ( Expression )
 
-    *               reduce using rule 20 (Factor -> UnaryOp Primary .)
-    /               reduce using rule 20 (Factor -> UnaryOp Primary .)
-    %               reduce using rule 20 (Factor -> UnaryOp Primary .)
-    <               reduce using rule 20 (Factor -> UnaryOp Primary .)
-    LE              reduce using rule 20 (Factor -> UnaryOp Primary .)
-    >               reduce using rule 20 (Factor -> UnaryOp Primary .)
-    GE              reduce using rule 20 (Factor -> UnaryOp Primary .)
-    +               reduce using rule 20 (Factor -> UnaryOp Primary .)
-    -               reduce using rule 20 (Factor -> UnaryOp Primary .)
-    EQ              reduce using rule 20 (Factor -> UnaryOp Primary .)
-    NEQ             reduce using rule 20 (Factor -> UnaryOp Primary .)
-    $end            reduce using rule 20 (Factor -> UnaryOp Primary .)
-    )               reduce using rule 20 (Factor -> UnaryOp Primary .)
+    -               shift and go to state 10
+    !               shift and go to state 11
+    INTLIT          shift and go to state 12
+    (               shift and go to state 13
 
+    Factor                         shift and go to state 38
+    UnaryOp                        shift and go to state 8
+    Primary                        shift and go to state 9
 
 state 28
 
-    (25) Primary -> ( Equality . )
+    (21) MulOp -> * .
 
-    )               shift and go to state 33
+    -               reduce using rule 21 (MulOp -> * .)
+    !               reduce using rule 21 (MulOp -> * .)
+    INTLIT          reduce using rule 21 (MulOp -> * .)
+    (               reduce using rule 21 (MulOp -> * .)
 
 
 state 29
 
-    (2) Equality -> Relation EquOp Relation .
+    (22) MulOp -> / .
 
-    $end            reduce using rule 2 (Equality -> Relation EquOp Relation .)
-    )               reduce using rule 2 (Equality -> Relation EquOp Relation .)
+    -               reduce using rule 22 (MulOp -> / .)
+    !               reduce using rule 22 (MulOp -> / .)
+    INTLIT          reduce using rule 22 (MulOp -> / .)
+    (               reduce using rule 22 (MulOp -> / .)
 
 
 state 30
 
-    (6) Relation -> Addition RelOp Addition .
-    (12) Addition -> Addition . AddOp Term
-    (13) AddOp -> . +
-    (14) AddOp -> . -
+    (23) MulOp -> % .
 
-    EQ              reduce using rule 6 (Relation -> Addition RelOp Addition .)
-    NEQ             reduce using rule 6 (Relation -> Addition RelOp Addition .)
-    $end            reduce using rule 6 (Relation -> Addition RelOp Addition .)
-    )               reduce using rule 6 (Relation -> Addition RelOp Addition .)
-    +               shift and go to state 21
-    -               shift and go to state 22
+    -               reduce using rule 23 (MulOp -> % .)
+    !               reduce using rule 23 (MulOp -> % .)
+    INTLIT          reduce using rule 23 (MulOp -> % .)
+    (               reduce using rule 23 (MulOp -> % .)
 
-    AddOp                          shift and go to state 16
 
 state 31
 
-    (12) Addition -> Addition AddOp Term .
-    (16) Term -> Term . MulOp Factor
-    (17) MulOp -> . *
-    (18) MulOp -> . /
-    (19) MulOp -> . %
+    (24) Factor -> UnaryOp Primary .
 
-    <               reduce using rule 12 (Addition -> Addition AddOp Term .)
-    LE              reduce using rule 12 (Addition -> Addition AddOp Term .)
-    >               reduce using rule 12 (Addition -> Addition AddOp Term .)
-    GE              reduce using rule 12 (Addition -> Addition AddOp Term .)
-    +               reduce using rule 12 (Addition -> Addition AddOp Term .)
-    -               reduce using rule 12 (Addition -> Addition AddOp Term .)
-    EQ              reduce using rule 12 (Addition -> Addition AddOp Term .)
-    NEQ             reduce using rule 12 (Addition -> Addition AddOp Term .)
-    $end            reduce using rule 12 (Addition -> Addition AddOp Term .)
-    )               reduce using rule 12 (Addition -> Addition AddOp Term .)
-    *               shift and go to state 24
-    /               shift and go to state 25
-    %               shift and go to state 26
+    *               reduce using rule 24 (Factor -> UnaryOp Primary .)
+    /               reduce using rule 24 (Factor -> UnaryOp Primary .)
+    %               reduce using rule 24 (Factor -> UnaryOp Primary .)
+    <               reduce using rule 24 (Factor -> UnaryOp Primary .)
+    LE              reduce using rule 24 (Factor -> UnaryOp Primary .)
+    >               reduce using rule 24 (Factor -> UnaryOp Primary .)
+    GE              reduce using rule 24 (Factor -> UnaryOp Primary .)
+    +               reduce using rule 24 (Factor -> UnaryOp Primary .)
+    -               reduce using rule 24 (Factor -> UnaryOp Primary .)
+    EQ              reduce using rule 24 (Factor -> UnaryOp Primary .)
+    NEQ             reduce using rule 24 (Factor -> UnaryOp Primary .)
+    AND             reduce using rule 24 (Factor -> UnaryOp Primary .)
+    OR              reduce using rule 24 (Factor -> UnaryOp Primary .)
+    $end            reduce using rule 24 (Factor -> UnaryOp Primary .)
+    )               reduce using rule 24 (Factor -> UnaryOp Primary .)
 
-    MulOp                          shift and go to state 23
 
 state 32
 
-    (16) Term -> Term MulOp Factor .
+    (29) Primary -> ( Expression . )
+    (2) Expression -> Expression . OR Conjunction
 
-    *               reduce using rule 16 (Term -> Term MulOp Factor .)
-    /               reduce using rule 16 (Term -> Term MulOp Factor .)
-    %               reduce using rule 16 (Term -> Term MulOp Factor .)
-    <               reduce using rule 16 (Term -> Term MulOp Factor .)
-    LE              reduce using rule 16 (Term -> Term MulOp Factor .)
-    >               reduce using rule 16 (Term -> Term MulOp Factor .)
-    GE              reduce using rule 16 (Term -> Term MulOp Factor .)
-    +               reduce using rule 16 (Term -> Term MulOp Factor .)
-    -               reduce using rule 16 (Term -> Term MulOp Factor .)
-    EQ              reduce using rule 16 (Term -> Term MulOp Factor .)
-    NEQ             reduce using rule 16 (Term -> Term MulOp Factor .)
-    $end            reduce using rule 16 (Term -> Term MulOp Factor .)
-    )               reduce using rule 16 (Term -> Term MulOp Factor .)
+    )               shift and go to state 39
+    OR              shift and go to state 14
 
 
 state 33
 
-    (25) Primary -> ( Equality ) .
+    (2) Expression -> Expression OR Conjunction .
+    (4) Conjunction -> Conjunction . AND Equality
 
-    *               reduce using rule 25 (Primary -> ( Equality ) .)
-    /               reduce using rule 25 (Primary -> ( Equality ) .)
-    %               reduce using rule 25 (Primary -> ( Equality ) .)
-    <               reduce using rule 25 (Primary -> ( Equality ) .)
-    LE              reduce using rule 25 (Primary -> ( Equality ) .)
-    >               reduce using rule 25 (Primary -> ( Equality ) .)
-    GE              reduce using rule 25 (Primary -> ( Equality ) .)
-    +               reduce using rule 25 (Primary -> ( Equality ) .)
-    -               reduce using rule 25 (Primary -> ( Equality ) .)
-    EQ              reduce using rule 25 (Primary -> ( Equality ) .)
-    NEQ             reduce using rule 25 (Primary -> ( Equality ) .)
-    $end            reduce using rule 25 (Primary -> ( Equality ) .)
-    )               reduce using rule 25 (Primary -> ( Equality ) .)
+    OR              reduce using rule 2 (Expression -> Expression OR Conjunction .)
+    $end            reduce using rule 2 (Expression -> Expression OR Conjunction .)
+    )               reduce using rule 2 (Expression -> Expression OR Conjunction .)
+    AND             shift and go to state 15
+
+
+state 34
+
+    (4) Conjunction -> Conjunction AND Equality .
+
+    AND             reduce using rule 4 (Conjunction -> Conjunction AND Equality .)
+    OR              reduce using rule 4 (Conjunction -> Conjunction AND Equality .)
+    $end            reduce using rule 4 (Conjunction -> Conjunction AND Equality .)
+    )               reduce using rule 4 (Conjunction -> Conjunction AND Equality .)
+
+
+state 35
+
+    (6) Equality -> Relation EquOp Relation .
+
+    AND             reduce using rule 6 (Equality -> Relation EquOp Relation .)
+    OR              reduce using rule 6 (Equality -> Relation EquOp Relation .)
+    $end            reduce using rule 6 (Equality -> Relation EquOp Relation .)
+    )               reduce using rule 6 (Equality -> Relation EquOp Relation .)
+
+
+state 36
+
+    (10) Relation -> Addition RelOp Addition .
+    (16) Addition -> Addition . AddOp Term
+    (17) AddOp -> . +
+    (18) AddOp -> . -
+
+    EQ              reduce using rule 10 (Relation -> Addition RelOp Addition .)
+    NEQ             reduce using rule 10 (Relation -> Addition RelOp Addition .)
+    AND             reduce using rule 10 (Relation -> Addition RelOp Addition .)
+    OR              reduce using rule 10 (Relation -> Addition RelOp Addition .)
+    $end            reduce using rule 10 (Relation -> Addition RelOp Addition .)
+    )               reduce using rule 10 (Relation -> Addition RelOp Addition .)
+    +               shift and go to state 25
+    -               shift and go to state 26
+
+    AddOp                          shift and go to state 20
+
+state 37
+
+    (16) Addition -> Addition AddOp Term .
+    (20) Term -> Term . MulOp Factor
+    (21) MulOp -> . *
+    (22) MulOp -> . /
+    (23) MulOp -> . %
+
+    <               reduce using rule 16 (Addition -> Addition AddOp Term .)
+    LE              reduce using rule 16 (Addition -> Addition AddOp Term .)
+    >               reduce using rule 16 (Addition -> Addition AddOp Term .)
+    GE              reduce using rule 16 (Addition -> Addition AddOp Term .)
+    +               reduce using rule 16 (Addition -> Addition AddOp Term .)
+    -               reduce using rule 16 (Addition -> Addition AddOp Term .)
+    EQ              reduce using rule 16 (Addition -> Addition AddOp Term .)
+    NEQ             reduce using rule 16 (Addition -> Addition AddOp Term .)
+    AND             reduce using rule 16 (Addition -> Addition AddOp Term .)
+    OR              reduce using rule 16 (Addition -> Addition AddOp Term .)
+    $end            reduce using rule 16 (Addition -> Addition AddOp Term .)
+    )               reduce using rule 16 (Addition -> Addition AddOp Term .)
+    *               shift and go to state 28
+    /               shift and go to state 29
+    %               shift and go to state 30
+
+    MulOp                          shift and go to state 27
+
+state 38
+
+    (20) Term -> Term MulOp Factor .
+
+    *               reduce using rule 20 (Term -> Term MulOp Factor .)
+    /               reduce using rule 20 (Term -> Term MulOp Factor .)
+    %               reduce using rule 20 (Term -> Term MulOp Factor .)
+    <               reduce using rule 20 (Term -> Term MulOp Factor .)
+    LE              reduce using rule 20 (Term -> Term MulOp Factor .)
+    >               reduce using rule 20 (Term -> Term MulOp Factor .)
+    GE              reduce using rule 20 (Term -> Term MulOp Factor .)
+    +               reduce using rule 20 (Term -> Term MulOp Factor .)
+    -               reduce using rule 20 (Term -> Term MulOp Factor .)
+    EQ              reduce using rule 20 (Term -> Term MulOp Factor .)
+    NEQ             reduce using rule 20 (Term -> Term MulOp Factor .)
+    AND             reduce using rule 20 (Term -> Term MulOp Factor .)
+    OR              reduce using rule 20 (Term -> Term MulOp Factor .)
+    $end            reduce using rule 20 (Term -> Term MulOp Factor .)
+    )               reduce using rule 20 (Term -> Term MulOp Factor .)
+
+
+state 39
+
+    (29) Primary -> ( Expression ) .
+
+    *               reduce using rule 29 (Primary -> ( Expression ) .)
+    /               reduce using rule 29 (Primary -> ( Expression ) .)
+    %               reduce using rule 29 (Primary -> ( Expression ) .)
+    <               reduce using rule 29 (Primary -> ( Expression ) .)
+    LE              reduce using rule 29 (Primary -> ( Expression ) .)
+    >               reduce using rule 29 (Primary -> ( Expression ) .)
+    GE              reduce using rule 29 (Primary -> ( Expression ) .)
+    +               reduce using rule 29 (Primary -> ( Expression ) .)
+    -               reduce using rule 29 (Primary -> ( Expression ) .)
+    EQ              reduce using rule 29 (Primary -> ( Expression ) .)
+    NEQ             reduce using rule 29 (Primary -> ( Expression ) .)
+    AND             reduce using rule 29 (Primary -> ( Expression ) .)
+    OR              reduce using rule 29 (Primary -> ( Expression ) .)
+    $end            reduce using rule 29 (Primary -> ( Expression ) .)
+    )               reduce using rule 29 (Primary -> ( Expression ) .)
 

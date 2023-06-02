@@ -4,13 +4,21 @@ import ply.yacc as yacc
 from arbol import Literal, Variable
 
 literals = ['+','-','*','/', '%', '(', ')', '<', '>', '!']
-tokens = ['ID', 'INTLIT', 'EQ', 'NEQ','GE', 'LE']
+tokens = ['ID', 'INTLIT', 'EQ', 'NEQ','GE', 'LE', 'AND', 'OR']
 
 t_ignore  = ' \t'
 
 def t_ID(t):
      r'[a-zA-Z_][a-zA-Z_0-9]*'
      return t
+
+def t_AND(t):
+    r'&&'
+    return t
+
+def t_OR(t):
+    r'\|\|'
+    return t
 
 def t_EQ(t):
     r'=='
@@ -42,6 +50,25 @@ def t_error(t):
     t.lexer.skip(1)
 
 # %%
+def p_Expression(p):
+    '''
+    Expression : Conjunction
+               | Expression OR Conjunction
+    '''
+    if len(p) > 2:
+        p[0] = BinaryOp(p[2], p[1], p[3])
+    else:
+        p[0] = p[1]
+
+def p_Conjunction(p):
+    '''
+    Conjunction : Equality
+               | Conjunction AND Equality
+    '''
+    if len(p) > 2:
+        p[0] = BinaryOp(p[2], p[1], p[3])
+    else:
+        p[0] = p[1]
 
 def p_Equality(p):
     '''
@@ -49,7 +76,6 @@ def p_Equality(p):
              | Relation EquOp Relation
     '''
     if len(p) > 2:
-        print("equality", p[2], p[1], p[3])
         p[0] = BinaryOp(p[2], p[1], p[3])
     else:
         p[0] = p[1]
@@ -59,7 +85,6 @@ def p_EquOp(p):
     EquOp : EQ
           | NEQ
     '''
-    print("EquOp?", p[1])
     p[0] = p[1]
 
 def p_Relation(p):
@@ -123,9 +148,11 @@ def p_Factor(p):
     '''
     
     if len(p) > 2:
-        p[2].value = -p[2].value
+        if p[1] == '-':
+            p[2].value = -p[2].value
+        else:
+            p[2].value = int(not(-p[2].value))
         p[0] = p[2]
-
     else:
         p[0] = p[1]
 
@@ -139,14 +166,13 @@ def p_UnaryOp(p):
 def p_Primary(p):
     '''
     Primary : INTLIT 
-            | '(' Equality ')'
+            | '(' Expression ')'
     '''
     if len(p) == 2:
         p[0] = Literal(p[1], 'INT')
     else:
         p[0] = p[2]
-
-        
+  
 def p_error(p):
     print("Syntax error in input!", p)
 
@@ -189,6 +215,10 @@ class IRGenerator(Visitor):
         elif node.op == '>' or node.op == '<' or node.op == '>=' \
             or node.op == '<=' or node.op == '==' or node.op == '!=':
             self.stack.append(self.builder.icmp_signed(node.op, lhs, rhs))
+        elif node.op == '&&':
+            self.stack.append(self.builder.and_(lhs, rhs)) # TODO: Esto hace un and a nivel de bits. Es lo que queremos?
+        elif node.op == '||':
+            self.stack.append(self.builder.or_(lhs, rhs))
 
 module = ir.Module(name="prog")
 
@@ -199,12 +229,12 @@ func = ir.Function(module, fnty, name='main')
 entry = func.append_basic_block('entry')
 builder = ir.IRBuilder(entry)
 
-#data = '1 != 1 == 2 + 6 * 2' -> este mismo ejemplo no funciona sin los paréntesis xd
-data = '(1 != 1) == (2 + 6 * 2)'
+#data = '(1 != 1) == (2 + 6 * 2)'
+data = '1 != 1 == 2 + 6 * 2' #-> este mismo ejemplo no funciona sin los paréntesis xd
+#data = '(!0 && 1) || (9 + 2) && -1*0'
 lexer = lex.lex()
 parser = yacc.yacc()
 ast = parser.parse(data)
-print(ast.lhs)
 
 visitor = IRGenerator(builder)
 ast.accept(visitor)
