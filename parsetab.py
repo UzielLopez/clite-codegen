@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = "AND EQ GE ID INTLIT LE NEQ OR\n    Expression : Conjunction\n               | Expression OR Conjunction\n    \n    Conjunction : Equality\n               | Conjunction AND Equality\n    \n    Equality : Relation\n             | Relation EquOp Relation\n    \n    EquOp : EQ\n          | NEQ\n    \n    Relation : Addition\n             | Addition RelOp Addition\n    \n    RelOp : '<'\n          | LE\n          | '>'\n          | GE \n    \n    Addition : Term\n             | Addition AddOp Term\n    \n    AddOp : '+'\n          | '-'\n    \n    Term : Factor\n         | Term MulOp Factor\n    \n    MulOp : '*'\n          | '/'\n          | '%'\n    \n    Factor : UnaryOp Primary\n           | Primary\n    \n    UnaryOp : '-'\n            | '!'\n    \n    Primary : INTLIT \n            | '(' Expression ')'\n    "
+_lr_signature = "AND ELSE EQ FLOAT GE ID IF INT INTLIT LE MAIN NEQ OR RETURN WHILE\n    Program : INT MAIN '(' ')' '{' Declarations Statements '}'\n    \n    empty :\n    \n    Declarations : Declaration Declarations\n                 | empty\n    \n    Declaration : INT ID ';'\n    \n    Statements : Statement\n    \n    Statement : Assignment\n              | IfStatement\n    \n    IfStatement : IF '(' Expression ')' Statement ELSE Statement\n    \n    Assignment : ID '=' Expression ';'\n    \n    Expression : Conjunction\n               | Expression OR Conjunction\n    \n    Conjunction : Equality\n                | Conjunction AND Equality\n    \n    Equality : Relation\n             | Relation EquOp Relation\n    \n    EquOp : EQ\n          | NEQ\n    \n    Relation : Addition\n             | Addition RelOp Addition\n    \n    RelOp : '<'\n          | LE\n          | '>'\n          | GE \n    \n    Addition : Term\n             | Addition AddOp Term\n    \n    AddOp : '+'\n          | '-'\n    \n    Term : Factor\n         | Term MulOp Factor\n    \n    MulOp : '*'\n          | '/'\n          | '%'\n    \n    Factor : Primary\n           | UnaryOp Primary\n    \n    UnaryOp : '-'\n            | '!'\n    Primary : INTLITPrimary : ID\n    Primary : '(' Expression ')'\n    "
     
-_lr_action_items = {'-':([0,5,6,7,9,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,36,37,38,39,],[10,26,-15,-19,-25,-28,10,10,10,10,-7,-8,10,10,-11,-12,-13,-14,-17,-18,10,-21,-22,-23,-24,26,-16,-20,-29,]),'!':([0,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,],[11,11,11,11,11,-7,-8,11,11,-11,-12,-13,-14,-17,-18,11,-21,-22,-23,]),'INTLIT':([0,8,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,],[12,12,-26,-27,12,12,12,12,-7,-8,12,12,-11,-12,-13,-14,-17,-18,12,-21,-22,-23,]),'(':([0,8,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,],[13,13,-26,-27,13,13,13,13,-7,-8,13,13,-11,-12,-13,-14,-17,-18,13,-21,-22,-23,]),'$end':([1,2,3,4,5,6,7,9,12,31,33,34,35,36,37,38,39,],[0,-1,-3,-5,-9,-15,-19,-25,-28,-24,-2,-4,-6,-10,-16,-20,-29,]),'OR':([1,2,3,4,5,6,7,9,12,31,32,33,34,35,36,37,38,39,],[14,-1,-3,-5,-9,-15,-19,-25,-28,-24,14,-2,-4,-6,-10,-16,-20,-29,]),')':([2,3,4,5,6,7,9,12,31,32,33,34,35,36,37,38,39,],[-1,-3,-5,-9,-15,-19,-25,-28,-24,39,-2,-4,-6,-10,-16,-20,-29,]),'AND':([2,3,4,5,6,7,9,12,31,33,34,35,36,37,38,39,],[15,-3,-5,-9,-15,-19,-25,-28,-24,15,-4,-6,-10,-16,-20,-29,]),'EQ':([4,5,6,7,9,12,31,36,37,38,39,],[17,-9,-15,-19,-25,-28,-24,-10,-16,-20,-29,]),'NEQ':([4,5,6,7,9,12,31,36,37,38,39,],[18,-9,-15,-19,-25,-28,-24,-10,-16,-20,-29,]),'<':([5,6,7,9,12,31,37,38,39,],[21,-15,-19,-25,-28,-24,-16,-20,-29,]),'LE':([5,6,7,9,12,31,37,38,39,],[22,-15,-19,-25,-28,-24,-16,-20,-29,]),'>':([5,6,7,9,12,31,37,38,39,],[23,-15,-19,-25,-28,-24,-16,-20,-29,]),'GE':([5,6,7,9,12,31,37,38,39,],[24,-15,-19,-25,-28,-24,-16,-20,-29,]),'+':([5,6,7,9,12,31,36,37,38,39,],[25,-15,-19,-25,-28,-24,25,-16,-20,-29,]),'*':([6,7,9,12,31,37,38,39,],[28,-19,-25,-28,-24,28,-20,-29,]),'/':([6,7,9,12,31,37,38,39,],[29,-19,-25,-28,-24,29,-20,-29,]),'%':([6,7,9,12,31,37,38,39,],[30,-19,-25,-28,-24,30,-20,-29,]),}
+_lr_action_items = {'INT':([0,6,9,19,],[2,7,7,-5,]),'$end':([1,20,],[0,-1,]),'MAIN':([2,],[3,]),'(':([3,17,21,22,32,34,35,36,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,],[4,22,34,34,34,34,-36,-37,34,34,34,-17,-18,34,34,-21,-22,-23,-24,-27,-28,34,-31,-32,-33,]),')':([4,23,25,26,27,28,29,30,31,33,37,56,57,59,60,61,62,63,64,65,],[5,-39,-11,-13,-15,-19,-25,-29,-34,-38,58,-35,65,-12,-14,-16,-20,-26,-30,-40,]),'{':([5,],[6,]),'ID':([6,7,8,9,10,18,19,21,22,32,34,35,36,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,58,67,],[-2,11,16,-2,-4,-3,-5,23,23,23,23,-36,-37,23,23,23,-17,-18,23,23,-21,-22,-23,-24,-27,-28,23,-31,-32,-33,16,16,]),'IF':([6,8,9,10,18,19,58,67,],[-2,17,-2,-4,-3,-5,17,17,]),';':([11,23,24,25,26,27,28,29,30,31,33,56,59,60,61,62,63,64,65,],[19,-39,38,-11,-13,-15,-19,-25,-29,-34,-38,-35,-12,-14,-16,-20,-26,-30,-40,]),'}':([12,13,14,15,38,68,],[20,-6,-7,-8,-10,-9,]),'ELSE':([14,15,38,66,68,],[-7,-8,-10,67,-9,]),'=':([16,],[21,]),'INTLIT':([21,22,32,34,35,36,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,],[33,33,33,33,-36,-37,33,33,33,-17,-18,33,33,-21,-22,-23,-24,-27,-28,33,-31,-32,-33,]),'-':([21,22,23,28,29,30,31,33,34,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,62,63,64,65,],[35,35,-39,51,-25,-29,-34,-38,35,35,35,35,-17,-18,35,35,-21,-22,-23,-24,-27,-28,35,-31,-32,-33,-35,51,-26,-30,-40,]),'!':([21,22,34,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,],[36,36,36,36,36,36,-17,-18,36,36,-21,-22,-23,-24,-27,-28,36,-31,-32,-33,]),'*':([23,29,30,31,33,56,63,64,65,],[-39,53,-29,-34,-38,-35,53,-30,-40,]),'/':([23,29,30,31,33,56,63,64,65,],[-39,54,-29,-34,-38,-35,54,-30,-40,]),'%':([23,29,30,31,33,56,63,64,65,],[-39,55,-29,-34,-38,-35,55,-30,-40,]),'<':([23,28,29,30,31,33,56,63,64,65,],[-39,46,-25,-29,-34,-38,-35,-26,-30,-40,]),'LE':([23,28,29,30,31,33,56,63,64,65,],[-39,47,-25,-29,-34,-38,-35,-26,-30,-40,]),'>':([23,28,29,30,31,33,56,63,64,65,],[-39,48,-25,-29,-34,-38,-35,-26,-30,-40,]),'GE':([23,28,29,30,31,33,56,63,64,65,],[-39,49,-25,-29,-34,-38,-35,-26,-30,-40,]),'+':([23,28,29,30,31,33,56,62,63,64,65,],[-39,50,-25,-29,-34,-38,-35,50,-26,-30,-40,]),'EQ':([23,27,28,29,30,31,33,56,62,63,64,65,],[-39,42,-19,-25,-29,-34,-38,-35,-20,-26,-30,-40,]),'NEQ':([23,27,28,29,30,31,33,56,62,63,64,65,],[-39,43,-19,-25,-29,-34,-38,-35,-20,-26,-30,-40,]),'AND':([23,25,26,27,28,29,30,31,33,56,59,60,61,62,63,64,65,],[-39,40,-13,-15,-19,-25,-29,-34,-38,-35,40,-14,-16,-20,-26,-30,-40,]),'OR':([23,24,25,26,27,28,29,30,31,33,37,56,57,59,60,61,62,63,64,65,],[-39,39,-11,-13,-15,-19,-25,-29,-34,-38,39,-35,39,-12,-14,-16,-20,-26,-30,-40,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'Expression':([0,13,],[1,32,]),'Conjunction':([0,13,14,],[2,2,33,]),'Equality':([0,13,14,15,],[3,3,3,34,]),'Relation':([0,13,14,15,16,],[4,4,4,4,35,]),'Addition':([0,13,14,15,16,19,],[5,5,5,5,5,36,]),'Term':([0,13,14,15,16,19,20,],[6,6,6,6,6,6,37,]),'Factor':([0,13,14,15,16,19,20,27,],[7,7,7,7,7,7,7,38,]),'UnaryOp':([0,13,14,15,16,19,20,27,],[8,8,8,8,8,8,8,8,]),'Primary':([0,8,13,14,15,16,19,20,27,],[9,31,9,9,9,9,9,9,9,]),'EquOp':([4,],[16,]),'RelOp':([5,],[19,]),'AddOp':([5,36,],[20,20,]),'MulOp':([6,37,],[27,27,]),}
+_lr_goto_items = {'Program':([0,],[1,]),'Declarations':([6,9,],[8,18,]),'Declaration':([6,9,],[9,9,]),'empty':([6,9,],[10,10,]),'Statements':([8,],[12,]),'Statement':([8,58,67,],[13,66,68,]),'Assignment':([8,58,67,],[14,14,14,]),'IfStatement':([8,58,67,],[15,15,15,]),'Expression':([21,22,34,],[24,37,57,]),'Conjunction':([21,22,34,39,],[25,25,25,59,]),'Equality':([21,22,34,39,40,],[26,26,26,26,60,]),'Relation':([21,22,34,39,40,41,],[27,27,27,27,27,61,]),'Addition':([21,22,34,39,40,41,44,],[28,28,28,28,28,28,62,]),'Term':([21,22,34,39,40,41,44,45,],[29,29,29,29,29,29,29,63,]),'Factor':([21,22,34,39,40,41,44,45,52,],[30,30,30,30,30,30,30,30,64,]),'Primary':([21,22,32,34,39,40,41,44,45,52,],[31,31,56,31,31,31,31,31,31,31,]),'UnaryOp':([21,22,34,39,40,41,44,45,52,],[32,32,32,32,32,32,32,32,32,]),'EquOp':([27,],[41,]),'RelOp':([28,],[44,]),'AddOp':([28,62,],[45,45,]),'MulOp':([29,63,],[52,52,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -26,34 +26,45 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> Expression","S'",1,None,None,None),
-  ('Expression -> Conjunction','Expression',1,'p_Expression','analisis.py',55),
-  ('Expression -> Expression OR Conjunction','Expression',3,'p_Expression','analisis.py',56),
-  ('Conjunction -> Equality','Conjunction',1,'p_Conjunction','analisis.py',67),
-  ('Conjunction -> Conjunction AND Equality','Conjunction',3,'p_Conjunction','analisis.py',68),
-  ('Equality -> Relation','Equality',1,'p_Equality','analisis.py',78),
-  ('Equality -> Relation EquOp Relation','Equality',3,'p_Equality','analisis.py',79),
-  ('EquOp -> EQ','EquOp',1,'p_EquOp','analisis.py',89),
-  ('EquOp -> NEQ','EquOp',1,'p_EquOp','analisis.py',90),
-  ('Relation -> Addition','Relation',1,'p_Relation','analisis.py',97),
-  ('Relation -> Addition RelOp Addition','Relation',3,'p_Relation','analisis.py',98),
-  ('RelOp -> <','RelOp',1,'p_RelOp','analisis.py',107),
-  ('RelOp -> LE','RelOp',1,'p_RelOp','analisis.py',108),
-  ('RelOp -> >','RelOp',1,'p_RelOp','analisis.py',109),
-  ('RelOp -> GE','RelOp',1,'p_RelOp','analisis.py',110),
-  ('Addition -> Term','Addition',1,'p_Addition','analisis.py',116),
-  ('Addition -> Addition AddOp Term','Addition',3,'p_Addition','analisis.py',117),
-  ('AddOp -> +','AddOp',1,'p_AddOp','analisis.py',126),
-  ('AddOp -> -','AddOp',1,'p_AddOp','analisis.py',127),
-  ('Term -> Factor','Term',1,'p_Term','analisis.py',133),
-  ('Term -> Term MulOp Factor','Term',3,'p_Term','analisis.py',134),
-  ('MulOp -> *','MulOp',1,'p_MulOp','analisis.py',143),
-  ('MulOp -> /','MulOp',1,'p_MulOp','analisis.py',144),
-  ('MulOp -> %','MulOp',1,'p_MulOp','analisis.py',145),
-  ('Factor -> UnaryOp Primary','Factor',2,'p_Factor','analisis.py',151),
-  ('Factor -> Primary','Factor',1,'p_Factor','analisis.py',152),
-  ('UnaryOp -> -','UnaryOp',1,'p_UnaryOp','analisis.py',164),
-  ('UnaryOp -> !','UnaryOp',1,'p_UnaryOp','analisis.py',165),
-  ('Primary -> INTLIT','Primary',1,'p_Primary','analisis.py',171),
-  ('Primary -> ( Expression )','Primary',3,'p_Primary','analisis.py',172),
+  ("S' -> Program","S'",1,None,None,None),
+  ('Program -> INT MAIN ( ) { Declarations Statements }','Program',8,'p_Program','analisis.py',51),
+  ('empty -> <empty>','empty',0,'p_empty','analisis.py',57),
+  ('Declarations -> Declaration Declarations','Declarations',2,'p_Declarations','analisis.py',63),
+  ('Declarations -> empty','Declarations',1,'p_Declarations','analisis.py',64),
+  ('Declaration -> INT ID ;','Declaration',3,'p_Declaration','analisis.py',71),
+  ('Statements -> Statement','Statements',1,'p_Statements','analisis.py',77),
+  ('Statement -> Assignment','Statement',1,'p_Statement','analisis.py',83),
+  ('Statement -> IfStatement','Statement',1,'p_Statement','analisis.py',84),
+  ('IfStatement -> IF ( Expression ) Statement ELSE Statement','IfStatement',7,'p_IfStatement','analisis.py',90),
+  ('Assignment -> ID = Expression ;','Assignment',4,'p_Assignment','analisis.py',96),
+  ('Expression -> Conjunction','Expression',1,'p_Expression','analisis.py',102),
+  ('Expression -> Expression OR Conjunction','Expression',3,'p_Expression','analisis.py',103),
+  ('Conjunction -> Equality','Conjunction',1,'p_Conjunction','analisis.py',112),
+  ('Conjunction -> Conjunction AND Equality','Conjunction',3,'p_Conjunction','analisis.py',113),
+  ('Equality -> Relation','Equality',1,'p_Equality','analisis.py',122),
+  ('Equality -> Relation EquOp Relation','Equality',3,'p_Equality','analisis.py',123),
+  ('EquOp -> EQ','EquOp',1,'p_EquOp','analisis.py',132),
+  ('EquOp -> NEQ','EquOp',1,'p_EquOp','analisis.py',133),
+  ('Relation -> Addition','Relation',1,'p_Relation','analisis.py',139),
+  ('Relation -> Addition RelOp Addition','Relation',3,'p_Relation','analisis.py',140),
+  ('RelOp -> <','RelOp',1,'p_RelOp','analisis.py',149),
+  ('RelOp -> LE','RelOp',1,'p_RelOp','analisis.py',150),
+  ('RelOp -> >','RelOp',1,'p_RelOp','analisis.py',151),
+  ('RelOp -> GE','RelOp',1,'p_RelOp','analisis.py',152),
+  ('Addition -> Term','Addition',1,'p_Addition','analisis.py',158),
+  ('Addition -> Addition AddOp Term','Addition',3,'p_Addition','analisis.py',159),
+  ('AddOp -> +','AddOp',1,'p_AddOp','analisis.py',168),
+  ('AddOp -> -','AddOp',1,'p_AddOp','analisis.py',169),
+  ('Term -> Factor','Term',1,'p_Term','analisis.py',175),
+  ('Term -> Term MulOp Factor','Term',3,'p_Term','analisis.py',176),
+  ('MulOp -> *','MulOp',1,'p_MulOp','analisis.py',185),
+  ('MulOp -> /','MulOp',1,'p_MulOp','analisis.py',186),
+  ('MulOp -> %','MulOp',1,'p_MulOp','analisis.py',187),
+  ('Factor -> Primary','Factor',1,'p_Factor','analisis.py',193),
+  ('Factor -> UnaryOp Primary','Factor',2,'p_Factor','analisis.py',194),
+  ('UnaryOp -> -','UnaryOp',1,'p_UnaryOp','analisis.py',209),
+  ('UnaryOp -> !','UnaryOp',1,'p_UnaryOp','analisis.py',210),
+  ('Primary -> INTLIT','Primary',1,'p_Primary_IntLit','analisis.py',215),
+  ('Primary -> ID','Primary',1,'p_Primary_Id','analisis.py',219),
+  ('Primary -> ( Expression )','Primary',3,'p_Primary_Expression','analisis.py',224),
 ]

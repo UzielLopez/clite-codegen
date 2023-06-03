@@ -1,35 +1,40 @@
 # %%
 import ply.lex as lex
 import ply.yacc as yacc
-from arbol import Literal, Variable, Visitor, BinaryOp, Declaration, Declarations, Assignment, Program, IfElse
-from llvmlite import ir
+from arbol import Literal, Variable
 
-literals = ['+','-','*','/', '%', '(', ')', '{', '}', '<', '>', '=', ';', ',', '!']
-reserved = {
-    'else' : 'ELSE',
-    'float' : 'FLOAT',
-    'if' : 'IF',
-    'int' : 'INT',
-    'main' : 'MAIN',
-    'return' : 'RETURN',
-    'while' : 'WHILE'
-}
-
-tokens = list(reserved.values()) + ['ID', 'INTLIT', 'LE', 'GE', 'EQ', 'NEQ', 'AND', 'OR']
+literals = ['+','-','*','/', '%', '(', ')', '<', '>', '!']
+tokens = ['ID', 'INTLIT', 'EQ', 'NEQ','GE', 'LE', 'AND', 'OR']
 
 t_ignore  = ' \t'
 
-t_LE = r'<='
-t_GE = r'>='
-t_EQ = r'=='
-t_NEQ = r'!='
-t_AND = r'&&'
-t_OR = r'\|\|'
-
 def t_ID(t):
      r'[a-zA-Z_][a-zA-Z_0-9]*'
-     t.type = reserved.get(t.value,'ID')    # Check for reserved words
      return t
+
+def t_AND(t):
+    r'&&'
+    return t
+
+def t_OR(t):
+    r'\|\|'
+    return t
+
+def t_EQ(t):
+    r'=='
+    return t
+
+def t_NEQ(t):
+    r'!='
+    return t
+
+def t_GE(t):
+    r'>='
+    return t
+
+def t_LE(t):
+    r'<='
+    return t
 
 def t_INTLIT(t):
     r'[0-9]+'
@@ -44,59 +49,7 @@ def t_error(t):
     print(f"Illegal character '{t.value[0]}'")
     t.lexer.skip(1)
 
-
-# ========================
-def p_Program(p):
-    '''
-    Program : INT MAIN '(' ')' '{' Declarations Statements '}'
-    '''
-    p[0] = Program( p[6], p[7] )
-
-def p_empty(p):
-    '''
-    empty :
-    '''
-    pass
-
-def p_Declarations(p):
-    '''
-    Declarations : Declaration Declarations
-                 | empty
-    '''
-    if len(p) > 2:
-        p[0] = Declarations(p[1], p[2])
-    
-def p_Declaration(p):
-    '''
-    Declaration : INT ID ';'
-    '''
-    p[0] = Declaration(p[2], p[1].upper())
-
-def p_Statements(p):
-    '''
-    Statements : Statement
-    '''
-    p[0] = p[1]
-
-def p_Statement(p):
-    '''
-    Statement : Assignment
-              | IfStatement
-    '''
-    p[0] = p[1]
-
-def p_IfStatement(p):
-    '''
-    IfStatement : IF '(' Expression ')' Statement ELSE Statement
-    '''
-    p[0] = IfElse(p[3], p[5], p[7])
-
-def p_Assignment(p):
-    '''
-    Assignment : ID '=' Expression ';'
-    '''
-    p[0] = Assignment(p[1], p[3])
-
+# %%
 def p_Expression(p):
     '''
     Expression : Conjunction
@@ -110,7 +63,7 @@ def p_Expression(p):
 def p_Conjunction(p):
     '''
     Conjunction : Equality
-                | Conjunction AND Equality
+               | Conjunction AND Equality
     '''
     if len(p) > 2:
         p[0] = BinaryOp(p[2], p[1], p[3])
@@ -187,11 +140,11 @@ def p_MulOp(p):
           | '%'
     '''
     p[0] = p[1]
-
+      
 def p_Factor(p):
     '''
-    Factor : Primary
-           | UnaryOp Primary
+    Factor : UnaryOp Primary
+           | Primary
     '''
     
     if len(p) > 2:
@@ -203,7 +156,6 @@ def p_Factor(p):
     else:
         p[0] = p[1]
 
-
 def p_UnaryOp(p):
     '''
     UnaryOp : '-'
@@ -211,71 +163,39 @@ def p_UnaryOp(p):
     '''
     p[0] = p[1]
 
-def p_Primary_IntLit(p):
-    'Primary : INTLIT'
-    p[0] = Literal(p[1], 'INT')
-
-def p_Primary_Id(p):
-    'Primary : ID'
-    p[0] = Variable(p[1], 'INT')
-
-def p_Primary_Expression(p):
+def p_Primary(p):
     '''
-    Primary : '(' Expression ')'
+    Primary : INTLIT 
+            | '(' Expression ')'
     '''
-    p[0] = p[2]
+    if len(p) == 2:
+        p[0] = Literal(p[1], 'INT')
+    else:
+        p[0] = p[2]
+  
+def p_error(p):
+    print("Syntax error in input!", p)
+
 
 # %%
+from arbol import Visitor, Literal, BinaryOp, Variable
+from llvmlite import ir
+
 intType = ir.IntType(32)
 
 class IRGenerator(Visitor):
     def __init__(self, builder):
         self.stack = []
-        self.symbolTable = dict()
         self.builder = builder
-
-    def visit_program(self, node: Program) -> None:
-        node.decls.accept(self)
-        node.stats.accept(self)
-
-    def visit_if_else(self, node: IfElse) -> None:
-        thenPart = func.append_basic_block('thenPart')
-        elsePart = func.append_basic_block('elsePart')
-        afterwards = func.append_basic_block('afterwards')
-        node.expr.accept(self)
-        expr = self.stack.pop()
-        builder.cbranch(expr, thenPart, elsePart)
-
-        # Then
-        self.builder.position_at_start(thenPart)
-        node.thenSt.accept(self)
-
-        # Else
-        self.builder.position_at_start(elsePart)
-        node.elseSt.accept(self)
-
-        self.builder.position_at_start(afterwards)
-
-    def visit_declaration(self, node: Declaration) -> None:
-        if node.type == 'INT':
-            variable = self.builder.alloca(intType, name=node.name)
-            self.symbolTable[node.name] = variable
-    
-    def visit_declarations(self, node: Declarations) -> None:
-        node.declaration.accept(self)
-        if node.declarations != None:
-            node.declarations.accept(self)
-        
-    def visit_assignment(self, node: Assignment) -> None:
-        node.rhs.accept(self)
-        rhs = self.stack.pop()
-        self.builder.store(rhs, self.symbolTable[node.lhs])
 
     def visit_literal(self, node: Literal) -> None:
         self.stack.append(intType(node.value))
     
     def visit_variable(self, node: Variable) -> None:
-        self.stack.append(self.builder.load(self.symbolTable[node.name]))
+        pass
+
+    def visit_rel_op(self, node: Variable) -> None:
+        pass
 
     def visit_binary_op(self, node: BinaryOp) -> None:
         node.lhs.accept(self)
@@ -302,31 +222,23 @@ class IRGenerator(Visitor):
 
 module = ir.Module(name="prog")
 
+# int main() {
 fnty = ir.FunctionType(intType, [])
 func = ir.Function(module, fnty, name='main')
 
 entry = func.append_basic_block('entry')
 builder = ir.IRBuilder(entry)
 
-data =  '''
-        int main() {
-            int x;
-            int y;
-            
-            if (x < 10)
-                x = y * 5;
-            else
-                x = x * 7;
-        }
-        '''
+#data = '(1 != 1) == (2 + 6 * 2)'
+data = '1 != 1 == 2 + 6 * 2' #-> este mismo ejemplo no funciona sin los paréntesis xd
+#data = '(!0 && 1) || (9 + 2) && -1*0'
 lexer = lex.lex()
 parser = yacc.yacc()
 ast = parser.parse(data)
-print(ast)
 
 visitor = IRGenerator(builder)
 ast.accept(visitor)
-# builder.ret(visitor.stack.pop())
+builder.ret(visitor.stack.pop())
 
 print(module)
 

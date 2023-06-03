@@ -7,6 +7,14 @@ class ASTNode(ABC):
     def accept(self, visitor: Visitor) -> None:
         pass
 
+class Program(ASTNode):
+    def __init__(self, decls: Any, stats: Any) -> None:
+        self.decls = decls
+        self.stats = stats
+
+    def accept(self, visitor: Visitor):
+        visitor.visit_program(self)
+
 class Literal(ASTNode):
     def __init__(self, value: Any, type: str) -> None:
         self.value = value
@@ -32,6 +40,40 @@ class BinaryOp(ASTNode):
     def accept(self, visitor: Visitor):
         visitor.visit_binary_op(self)
 
+class IfElse(ASTNode):
+    def __init__(self, expr: Any, thenSt: Any, elseSt: Any) -> None:
+        self.expr = expr
+        self.thenSt = thenSt
+        self.elseSt = elseSt
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_if_else(self)
+
+class Declaration(ASTNode):
+    def __init__(self, name: str, type: str) -> None:
+        self.name = name
+        self.type = type
+
+    def accept(self, visitor: Visitor):
+        visitor.visit_declaration(self)
+
+class Declarations(ASTNode):
+    def __init__(self, declaration: Declaration, declarations: Declarations) -> None:
+        self.declaration = declaration
+        self.declarations = declarations
+
+    def accept(self, visitor: Visitor):
+        visitor.visit_declarations(self)
+
+class Assignment(ASTNode):
+    def __init__(self, lhs: str, rhs: ASTNode) -> None:
+        self.lhs = lhs
+        self.rhs = rhs
+    
+    def accept(self, visitor: Visitor):
+        visitor.visit_assignment(self)
+
+
 class Visitor(ABC):
     @abstractmethod
     def visit_literal(self, node: Literal) -> None:
@@ -48,7 +90,7 @@ class Calculator(Visitor):
         self.stack = []
 
     def visit_literal(self, node: Literal) -> None:
-        self.stack.append(node.value)
+        self.stack.append(node.value)        
     
     def visit_binary_op(self, node: BinaryOp) -> None:
         node.lhs.accept(self)
