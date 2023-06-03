@@ -2,6 +2,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
+from arbol import Visitor
+
 class ASTNode(ABC):
     @abstractmethod
     def accept(self, visitor: Visitor) -> None:
@@ -72,6 +74,23 @@ class Assignment(ASTNode):
     
     def accept(self, visitor: Visitor):
         visitor.visit_assignment(self)
+
+#TODO: Generalizar esta clase 
+class Statement(ASTNode):
+    def __init__(self, type: str):
+        self.type = type
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_statement(self)
+
+
+class Statements(ASTNode):
+    def __init__(self, statement: Statement, statements: Statements) -> None:
+        self.statement = statement
+        self.statements = statements
+        
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_statements(self)
 
 
 class Visitor(ABC):

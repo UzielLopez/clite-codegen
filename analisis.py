@@ -1,7 +1,8 @@
 # %%
 import ply.lex as lex
 import ply.yacc as yacc
-from arbol import Literal, Variable, Visitor, BinaryOp, Declaration, Declarations, Assignment, Program, IfElse
+from arbol import (Literal, Variable, Visitor, BinaryOp, Declaration,
+                   Declarations, Assignment, Statement, Statements, Program, IfElse)
 from llvmlite import ir
 
 literals = ['+','-','*','/', '%', '(', ')', '{', '}', '<', '>', '=', ';', ',', '!']
@@ -10,6 +11,9 @@ reserved = {
     'float' : 'FLOAT',
     'if' : 'IF',
     'int' : 'INT',
+    'float' : 'FLOAT',
+    'bool' : 'BOOL',
+    'char' : 'CHAR',
     'main' : 'MAIN',
     'return' : 'RETURN',
     'while' : 'WHILE'
@@ -68,34 +72,62 @@ def p_Declarations(p):
     
 def p_Declaration(p):
     '''
-    Declaration : INT ID ';'
+    Declaration : Type ID ';'
     '''
     p[0] = Declaration(p[2], p[1].upper())
 
+def p_Type(p):
+    '''
+    Type : INT
+         | BOOL
+         | FLOAT
+         | CHAR
+    '''
+    p[0] = p[1]
+
 def p_Statements(p):
     '''
-    Statements : Statement
+    Statements : Statement Statements
+               | empty
     '''
     p[0] = p[1]
 
 def p_Statement(p):
     '''
-    Statement : Assignment
+    Statement : ';'
+              | Block
+              | Assignment
               | IfStatement
+              | WhileStatement
     '''
     p[0] = p[1]
 
-def p_IfStatement(p):
+def p_Block(p):
     '''
-    IfStatement : IF '(' Expression ')' Statement ELSE Statement
+    Block : '{' Statements '}'
     '''
-    p[0] = IfElse(p[3], p[5], p[7])
+    p[0] = p[2]
 
 def p_Assignment(p):
     '''
     Assignment : ID '=' Expression ';'
     '''
     p[0] = Assignment(p[1], p[3])
+
+def p_IfStatement(p):
+    '''
+    IfStatement : IF '(' Expression ')' Statement 
+                | IF '(' Expression ')' Statement ELSE Statement
+    '''
+    if len(p) > 6:
+        p[0] = IfElse(p[3], p[5], p[7])
+    else:
+        p[0] = IfElse(p[3], p[5], None)
+
+def p_WhileStatement(p):
+    '''
+    WhileStatement : WHILE '(' Expression ')' Statement
+    '''
 
 def p_Expression(p):
     '''
@@ -229,7 +261,7 @@ def p_Primary_Expression(p):
 intType = ir.IntType(32)
 
 class IRGenerator(Visitor):
-    def __init__(self, builder):
+    def __init__(self, builder: ir.IRBuilder):
         self.stack = []
         self.symbolTable = dict()
         self.builder = builder
@@ -241,20 +273,19 @@ class IRGenerator(Visitor):
     def visit_if_else(self, node: IfElse) -> None:
         thenPart = func.append_basic_block('thenPart')
         elsePart = func.append_basic_block('elsePart')
-        afterwards = func.append_basic_block('afterwards')
+        # afterwards = func.append_basic_block('afterwards')
         node.expr.accept(self)
         expr = self.stack.pop()
         builder.cbranch(expr, thenPart, elsePart)
 
         # Then
-        self.builder.position_at_start(thenPart)
-        node.thenSt.accept(self)
-
-        # Else
-        self.builder.position_at_start(elsePart)
-        node.elseSt.accept(self)
-
-        self.builder.position_at_start(afterwards)
+        with builder.goto_block(thenPart):
+            node.thenSt.accept(self)
+        
+        # Else, que puede o no estar presente en el bloque
+        if node.elseSt:
+            with builder.goto_block(elsePart):
+                node.elseSt.accept(self)
 
     def visit_declaration(self, node: Declaration) -> None:
         if node.type == 'INT':
@@ -270,6 +301,15 @@ class IRGenerator(Visitor):
         node.rhs.accept(self)
         rhs = self.stack.pop()
         self.builder.store(rhs, self.symbolTable[node.lhs])
+
+    # TODO: Implementar estos métodos para que mimiquen el comprotamiento de
+    # declarations y que se handlee el tipo de nodo visitado y se genere el código
+    # conforme cada caso (tipo con el visit_binary_op)
+    def visit_statement(self, node: Statement) -> None:
+        pass
+
+    def visit_statements(self, node: Statements) -> None:
+        pass
 
     def visit_literal(self, node: Literal) -> None:
         self.stack.append(intType(node.value))
@@ -308,15 +348,20 @@ func = ir.Function(module, fnty, name='main')
 entry = func.append_basic_block('entry')
 builder = ir.IRBuilder(entry)
 
+
 data =  '''
         int main() {
             int x;
             int y;
+            int z;
             
             if (x < 10)
                 x = y * 5;
             else
                 x = x * 7;
+            
+            z = 10;
+            x = 2;
         }
         '''
 lexer = lex.lex()
