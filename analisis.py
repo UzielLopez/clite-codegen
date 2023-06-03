@@ -2,7 +2,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 from arbol import (Literal, Variable, Visitor, BinaryOp, Declaration,
-                   Declarations, Assignment, Statement, Statements, Program, IfElse)
+                   Declarations, Assignment, Statements, Program, IfElse)
 from llvmlite import ir
 
 literals = ['+','-','*','/', '%', '(', ')', '{', '}', '<', '>', '=', ';', ',', '!']
@@ -90,7 +90,8 @@ def p_Statements(p):
     Statements : Statement Statements
                | empty
     '''
-    p[0] = p[1]
+    if len(p) > 2:
+        p[0] = Statements(p[1], p[2])
 
 def p_Statement(p):
     '''
@@ -265,27 +266,28 @@ class IRGenerator(Visitor):
         self.stack = []
         self.symbolTable = dict()
         self.builder = builder
+        self._tmp_count = 0
 
     def visit_program(self, node: Program) -> None:
         node.decls.accept(self)
         node.stats.accept(self)
 
     def visit_if_else(self, node: IfElse) -> None:
-        thenPart = func.append_basic_block('thenPart')
-        elsePart = func.append_basic_block('elsePart')
-        # afterwards = func.append_basic_block('afterwards')
         node.expr.accept(self)
         expr = self.stack.pop()
-        builder.cbranch(expr, thenPart, elsePart)
 
-        # Then
-        with builder.goto_block(thenPart):
-            node.thenSt.accept(self)
+        with builder.if_else(expr) as (then, otherwise):
+            with then:
+                node.thenSt.accept(self)
+            # emit instructions for when the predicate is true
+            with otherwise:
+                if node.elseSt:
+                    node.elseSt.accept(self)
+
+            # emit instructions for when the predicate is false
+
+        # emit instructions following the if-else block
         
-        # Else, que puede o no estar presente en el bloque
-        if node.elseSt:
-            with builder.goto_block(elsePart):
-                node.elseSt.accept(self)
 
     def visit_declaration(self, node: Declaration) -> None:
         if node.type == 'INT':
@@ -305,11 +307,11 @@ class IRGenerator(Visitor):
     # TODO: Implementar estos métodos para que mimiquen el comprotamiento de
     # declarations y que se handlee el tipo de nodo visitado y se genere el código
     # conforme cada caso (tipo con el visit_binary_op)
-    def visit_statement(self, node: Statement) -> None:
-        pass
 
     def visit_statements(self, node: Statements) -> None:
-        pass
+        node.statement.accept(self)
+        if node.statements != None:
+            node.statements.accept(self)
 
     def visit_literal(self, node: Literal) -> None:
         self.stack.append(intType(node.value))
@@ -362,6 +364,12 @@ data =  '''
             
             z = 10;
             x = 2;
+
+            if (x < 10)
+                x = y * 5;
+            else
+                x = x * 7;
+            
         }
         '''
 lexer = lex.lex()

@@ -73,18 +73,10 @@ class Assignment(ASTNode):
     def accept(self, visitor: Visitor):
         visitor.visit_assignment(self)
 
-#TODO: Generalizar esta clase 
-class Statement(ASTNode):
-    def __init__(self, type: str):
-        self.type = type
-    
-    def accept(self, visitor: Visitor) -> None:
-        visitor.visit_statement(self)
-
 
 class Statements(ASTNode):
-    def __init__(self, statement: Statement, statements: Statements) -> None:
-        self.statement = statement
+    def __init__(self, statement: any, statements: Statements) -> None:
+        self.statement = statement # Puede ser de clase IfElse, Assignment o WhileStatement
         self.statements = statements
 
     def accept(self, visitor: Visitor) -> None:
