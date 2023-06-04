@@ -2,7 +2,8 @@
 import ply.lex as lex
 import ply.yacc as yacc
 from arbol import (Literal, Variable, Visitor, BinaryOp, Declaration,
-                   Declarations, Assignment, Statements, Program, IfElse)
+                   Declarations, Assignment, Statements, Program,
+                   IfElse, WhileStatement)
 from llvmlite import ir
 
 literals = ['+','-','*','/', '%', '(', ')', '{', '}', '<', '>', '=', ';', ',', '!']
@@ -129,6 +130,9 @@ def p_WhileStatement(p):
     '''
     WhileStatement : WHILE '(' Expression ')' Statement
     '''
+    print("funcionó el while")
+    print("Head: ", p[3])
+    p[0] = WhileStatement(p[3], p[5])
 
 def p_Expression(p):
     '''
@@ -236,7 +240,6 @@ def p_Factor(p):
     else:
         p[0] = p[1]
 
-
 def p_UnaryOp(p):
     '''
     UnaryOp : '-'
@@ -276,18 +279,12 @@ class IRGenerator(Visitor):
         node.expr.accept(self)
         expr = self.stack.pop()
 
-        with builder.if_else(expr) as (then, otherwise):
+        with self.builder.if_else(expr) as (then, otherwise):
             with then:
                 node.thenSt.accept(self)
-            # emit instructions for when the predicate is true
             with otherwise:
                 if node.elseSt:
                     node.elseSt.accept(self)
-
-            # emit instructions for when the predicate is false
-
-        # emit instructions following the if-else block
-        
 
     def visit_declaration(self, node: Declaration) -> None:
         if node.type == 'INT':
@@ -304,16 +301,34 @@ class IRGenerator(Visitor):
         rhs = self.stack.pop()
         self.builder.store(rhs, self.symbolTable[node.lhs])
 
-    # TODO: Implementar estos métodos para que mimiquen el comprotamiento de
-    # declarations y que se handlee el tipo de nodo visitado y se genere el código
-    # conforme cada caso (tipo con el visit_binary_op)
-
     def visit_statements(self, node: Statements) -> None:
         node.statement.accept(self)
         if node.statements != None:
             node.statements.accept(self)
+    
+    def visit_while_statement(self, node: WhileStatement) -> None:
+
+        whileHead = func.append_basic_block('while-head')
+        whileBody = func.append_basic_block('while-body')
+        whileExit = func.append_basic_block('while-exit')
+
+        self.builder.branch(whileHead)
+        #TODO: c Branch espera que la condición se evalue a un
+        #IntType(1), por lo que para que las expresiones que no dan
+        # como resultado un bool debes de asegurarte que en las expresiones
+        # que evaluan cosas que dan como resultado un bool en verdad
+        # los operandos sean bool. tal vez tengas que castear
+        self.builder.position_at_start(whileHead)
+        node.head.accept(self) # Esto va a ser, at most, una expression
+        head_expression = self.stack.pop()
+        self.builder.cbranch(head_expression, whileBody, whileExit)
+        self.builder.position_at_start(whileBody)
+        node.body.accept(self)
+        self.builder.branch(whileHead)
+        self.builder.position_at_start(whileExit)
 
     def visit_literal(self, node: Literal) -> None:
+        # TODO: Muévele aquí cuando ya hayas implementado los otros tipos 
         self.stack.append(intType(node.value))
     
     def visit_variable(self, node: Variable) -> None:
@@ -353,29 +368,26 @@ builder = ir.IRBuilder(entry)
 
 data =  '''
         int main() {
-            int x;
-            int y;
-            int z;
-            
-            if (x < 10)
-                x = y * 5;
-            else
-                x = x * 7;
-            
-            z = 10;
-            x = 2;
+            int f;
+            int i;
+            int n;
 
-            if (x < 10)
-                x = y * 5;
-            else
-                x = x * 7;
+            n = 5;
+            f = 1;
+            i = 1;
+
+            while (i <= n) {
+                f = i;
+                i = i + 1;
+            }
             
+            f = 2;
         }
         '''
 lexer = lex.lex()
 parser = yacc.yacc()
 ast = parser.parse(data)
-print(ast)
+print("ast => ",ast)
 
 visitor = IRGenerator(builder)
 ast.accept(visitor)
@@ -384,3 +396,5 @@ ast.accept(visitor)
 print(module)
 
 # %%
+
+

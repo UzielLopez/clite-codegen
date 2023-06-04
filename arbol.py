@@ -49,6 +49,15 @@ class IfElse(ASTNode):
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_if_else(self)
 
+class WhileStatement(ASTNode):
+    #head puede ser cualuier expresión
+    def __init__(self, head: any, body: any):
+        self.head = head
+        self.body = body
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_while_statement(self)
+
 class Declaration(ASTNode):
     def __init__(self, name: str, type: str) -> None:
         self.name = name
