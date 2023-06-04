@@ -17,8 +17,14 @@ class Program(ASTNode):
 
 class Literal(ASTNode):
     def __init__(self, value: Any, type: str) -> None:
-        self.value = value
+        #self.value = value
         self.type = type
+
+        if(type == "INT"):
+            self.value = int(value)
+
+        elif(type == "FLOAT"):
+            self.value = float(value)
 
     def accept(self, visitor: Visitor):
         visitor.visit_literal(self)

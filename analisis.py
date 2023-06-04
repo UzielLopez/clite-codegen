@@ -20,7 +20,7 @@ reserved = {
     'while' : 'WHILE'
 }
 
-tokens = list(reserved.values()) + ['ID', 'INTLIT', 'LE', 'GE', 'EQ', 'NEQ', 'AND', 'OR']
+tokens = list(reserved.values()) + ['ID', 'INTLIT', 'FLOATLIT','LE', 'GE', 'EQ', 'NEQ', 'AND', 'OR']
 
 t_ignore  = ' \t'
 
@@ -38,7 +38,11 @@ def t_ID(t):
 
 def t_INTLIT(t):
     r'[0-9]+'
-    t.value = int(t.value)
+    return t
+
+def t_FLOATLIT(t):
+    r'(\+|\-)?(\d+)?(((0x|X)([0-9a-fA-F])?(\.?([0-9a-fA-F])?(p|P)(\+|\-)?\d+|(\.([0-9a-fA-F])?)))|((\.?(\d+)?(e|E)(\+|\-)?(\d+)|(\.(\d+)?))))(l|L|f|F)?'
+    # NOTE: técnicamente Python solo va a poder castear los floats en C que puuedan existir en Python con el mismo formato
     return t
 
 def t_newline(t):
@@ -130,8 +134,6 @@ def p_WhileStatement(p):
     '''
     WhileStatement : WHILE '(' Expression ')' Statement
     '''
-    print("funcionó el while")
-    print("Head: ", p[3])
     p[0] = WhileStatement(p[3], p[5])
 
 def p_Expression(p):
@@ -247,12 +249,19 @@ def p_UnaryOp(p):
     '''
     p[0] = p[1]
 
+def p_Primary_FloatLit(p):
+    'Primary : FLOATLIT'
+    print("parceó un floatlit")
+    p[0] = Literal(p[1], 'FLOAT')
+
 def p_Primary_IntLit(p):
     'Primary : INTLIT'
     p[0] = Literal(p[1], 'INT')
 
 def p_Primary_Id(p):
     'Primary : ID'
+    # TODO: Aquí hay un problema. Estamos asumiendo el tipo de la variable, pero técnicamente no la conocemos cuando
+    # se identifica de una. Piensa en otra forma de handlear esto.
     p[0] = Variable(p[1], 'INT')
 
 def p_Primary_Expression(p):
@@ -263,6 +272,7 @@ def p_Primary_Expression(p):
 
 # %%
 intType = ir.IntType(32)
+floatType = ir.FloatType()
 
 class IRGenerator(Visitor):
     def __init__(self, builder: ir.IRBuilder):
@@ -289,6 +299,9 @@ class IRGenerator(Visitor):
     def visit_declaration(self, node: Declaration) -> None:
         if node.type == 'INT':
             variable = self.builder.alloca(intType, name=node.name)
+            self.symbolTable[node.name] = variable
+        if node.type == 'FLOAT':
+            variable = self.builder.alloca(floatType, name=node.name)
             self.symbolTable[node.name] = variable
     
     def visit_declarations(self, node: Declarations) -> None:
@@ -329,7 +342,10 @@ class IRGenerator(Visitor):
 
     def visit_literal(self, node: Literal) -> None:
         # TODO: Muévele aquí cuando ya hayas implementado los otros tipos 
-        self.stack.append(intType(node.value))
+        if node.type == 'INT':
+            self.stack.append(intType(node.value))
+        elif node.type == 'FLOAT':
+            self.stack.append(floatType(node.value))
     
     def visit_variable(self, node: Variable) -> None:
         self.stack.append(self.builder.load(self.symbolTable[node.name]))
@@ -371,10 +387,12 @@ data =  '''
             int f;
             int i;
             int n;
+            float e;
 
             n = 5;
             f = 1;
             i = 1;
+            e = 2.5;
 
             while (i <= n) {
                 f = i;
@@ -382,6 +400,12 @@ data =  '''
             }
             
             f = 2;
+            i = 5;
+
+            if( 1 && 1){
+                i = 55;
+            }
+
         }
         '''
 lexer = lex.lex()
