@@ -6,7 +6,6 @@ class ASTNode(ABC):
     @abstractmethod
     def accept(self, visitor: Visitor) -> None:
         pass
-
 class Program(ASTNode):
     def __init__(self, decls: Any, stats: Any) -> None:
         self.decls = decls
@@ -17,7 +16,6 @@ class Program(ASTNode):
 
 class Literal(ASTNode):
     def __init__(self, value: Any, type: str) -> None:
-        #self.value = value
         self.type = type
 
         if(type == "INT"):
@@ -30,9 +28,8 @@ class Literal(ASTNode):
         visitor.visit_literal(self)
 
 class Variable(ASTNode):
-    def __init__(self, name: Any, type: str) -> None:
+    def __init__(self, name: Any) -> None:
         self.name = name
-        self.type = type
 
     def accept(self, visitor: Visitor):
         visitor.visit_variable(self)
@@ -114,7 +111,6 @@ class Assignment(ASTNode):
     def accept(self, visitor: Visitor):
         visitor.visit_assignment(self)
 
-
 class Statements(ASTNode):
     def __init__(self, statement: any, statements: Statements) -> None:
         self.statement = statement # Puede ser de clase IfElse, Assignment o WhileStatement
@@ -141,7 +137,6 @@ class Function(ASTNode):
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_function(self)
 
-
 class Functions(ASTNode):
     def __init__(self, function: Function, functions: Functions) -> None:
         self.function = function
@@ -150,7 +145,6 @@ class Functions(ASTNode):
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_functions(self)
         
-
 class Visitor(ABC):
     @abstractmethod
     def visit_literal(self, node: Literal) -> None:
@@ -161,26 +155,3 @@ class Visitor(ABC):
     @abstractmethod
     def visit_binary_op(self, node: BinaryOp) -> None:
         pass
-
-class Calculator(Visitor):
-    def __init__(self):
-        self.stack = []
-
-    def visit_literal(self, node: Literal) -> None:
-        self.stack.append(node.value)        
-    
-    def visit_binary_op(self, node: BinaryOp) -> None:
-        node.lhs.accept(self)
-        node.rhs.accept(self)
-        rhs = self.stack.pop()
-        lhs = self.stack.pop()
-        if node.op == '+':
-            self.stack.append(lhs + rhs)
-        elif node.op == '-':
-            self.stack.append(lhs - rhs)
-        elif node.op == '*':
-            self.stack.append(lhs * rhs)
-        elif node.op == '/':
-            self.stack.append(lhs / rhs)
-        elif node.op == '%':
-            self.stack.append(lhs % rhs)

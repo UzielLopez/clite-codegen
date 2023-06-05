@@ -33,7 +33,7 @@ t_OR = r'\|\|'
 
 def t_ID(t):
      r'[a-zA-Z_][a-zA-Z_0-9]*'
-     t.type = reserved.get(t.value,'ID')    # Check for reserved words
+     t.type = reserved.get(t.value,'ID')
      return t
 
 def t_FLOATLIT(t):
@@ -146,7 +146,6 @@ def p_Statement(p):
               | WhileStatement
               | ReturnStatement
     '''
-    print("Matcheó un statement: ", p[1])
     p[0] = p[1]
 
 def p_Block(p):
@@ -175,12 +174,11 @@ def p_ForStatement(p):
     '''
     ForStatement : FOR '(' ID '=' Expression ';' Expression ';' ID '=' Expression ')' Statement
     '''
-    # Como es una simplificación del lenguaje C, en este loop solo 
+    # Como es una simplificación del lenguaje C, en este loop solo
     # puede haber una variable de control, la cual debe ser la ID
     # de esta producción. Se espera que esa misma variable esté
     # presente en las dos otras secciones de del for statement
     p[0] = ForStatement(p[3], p[5], p[7], p[11], p[13])
-    
 
 def p_WhileStatement(p):
     '''
@@ -317,7 +315,8 @@ def p_Factor(p):
     Factor : Primary
            | UnaryOp Primary
     '''
-    
+    #TODO: Recuerda que esto es mejor handlearlo con las operaciones
+    # de ir
     if len(p) > 2:
         if p[1] == '-':
             p[2].value = -p[2].value
@@ -344,9 +343,7 @@ def p_Primary_IntLit(p):
 
 def p_Primary_Id(p):
     'Primary : ID'
-    # TODO: Aquí hay un problema. Estamos asumiendo el tipo de la variable, pero técnicamente no la conocemos cuando
-    # se identifica de una. Piensa en otra forma de handlear esto.
-    p[0] = Variable(p[1], 'INT')
+    p[0] = Variable(p[1])
 
 def p_Primary_Expression(p):
     '''
@@ -435,7 +432,6 @@ class IRGenerator(Visitor):
         #TODO: Si assignment es un binaryOp, ignoralo, no hagas nada o haz
         # que se handlee de tal forma que en el stack no quede insertada la operacion
         # pero si se agregue al codegen?
-
         node.rhs.accept(self)
         rhs = self.stack.pop()
         # Está cool que si esta linea falla eso significa que se está
@@ -500,18 +496,14 @@ class IRGenerator(Visitor):
     
     def visit_function_call_statement(self, node: FunctionCallStatement):
         
-        print("los args: ", node.arguments_list)
         arg_n = len(node.arguments_list)
         args = []
         for i in range(arg_n):
             node.arguments_list[i].accept(self)
             args.append(self.stack.pop())
         
-        
         self.stack.append(self.builder.call(self.functionTable[node.function_to_call], args))
-        
-        #self.builder.call(self.functionTable[node.function_to_call], args)
-        
+                
     def visit_return_statement(self, node: ReturnStatement):
         
         if node.expression:
@@ -529,7 +521,6 @@ class IRGenerator(Visitor):
     
     def visit_variable(self, node: Variable) -> None:
         name = f"{self.func.name}.{node.name}"
-        #print("lo que se va a loadear", self.symbolTable[name])
         if name in self.parametersTable:
             self.stack.append(self.parametersTable[name])
         else:
@@ -560,13 +551,6 @@ class IRGenerator(Visitor):
 
 module = ir.Module(name="prog")
 
-#fnty = ir.FunctionType(intType, [])
-#func = ir.Function(module, fnty, name='main')
-
-#entry = func.append_basic_block('entry')
-#builder = ir.IRBuilder(entry)
-
-
 data =  '''
         int factorial(int n) {
             int f;
@@ -593,15 +577,10 @@ print("ast => ",ast)
 
 visitor = IRGenerator(module)
 ast.accept(visitor)
-# builder.ret(visitor.stack.pop())
 
 print(module)
 
 # %%
-
-
-
-
 import runtime as rt
 from ctypes import CFUNCTYPE, c_int
 
