@@ -138,14 +138,15 @@ def p_Statements(p):
 def p_Statement(p):
     '''
     Statement : ';'
+              | Expression ';'
               | Block
               | Assignment
               | IfStatement
               | ForStatement
               | WhileStatement
               | ReturnStatement
-              | FunctionCallStatement
     '''
+    print("Matcheó un statement: ", p[1])
     p[0] = p[1]
 
 def p_Block(p):
@@ -197,16 +198,26 @@ def p_ReturnStatement(p):
     else:
         p[0] = ReturnStatement(None)
 
+def p_Expression(p):
+    '''
+    Expression : Conjunction
+               | FunctionCallStatement
+               | Expression OR Conjunction
+    '''
+    if len(p) > 2:
+        p[0] = BinaryOp(p[2], p[1], p[3])
+    else:
+        p[0] = p[1]
+
 def p_FunctionCallStatement(p):
     '''
-    FunctionCallStatement : ID '(' ArgumentsList ')' ';'
-                          | ID '(' ')' ';'
+    FunctionCallStatement : ID '(' ArgumentsList ')'
+                          | ID '(' ')'
     '''
-    if len(p) > 5:
+    if len(p) > 4:
         p[0] = FunctionCallStatement(p[1], p[3])
     else:
         p[0] = FunctionCallStatement(p[1], [])
-
 
 def p_ArgumentsList(p):
     '''
@@ -218,16 +229,6 @@ def p_ArgumentsList(p):
         p[0] = p[1]
     else:
         p[0] = [p[1]]
-
-def p_Expression(p):
-    '''
-    Expression : Conjunction
-               | Expression OR Conjunction
-    '''
-    if len(p) > 2:
-        p[0] = BinaryOp(p[2], p[1], p[3])
-    else:
-        p[0] = p[1]
 
 def p_Conjunction(p):
     '''
@@ -361,6 +362,7 @@ class IRGenerator(Visitor):
     def __init__(self, module):
         self.stack = []
         self.symbolTable = dict()
+        self.parametersTable = dict()
         self.functionTable = dict()
         self.builder = None
         self.func = None
@@ -416,7 +418,10 @@ class IRGenerator(Visitor):
         self.functionTable[node.name] = self.func
         # Nombrar los parámetros de entrada de la función
         for i in range(len(parameters)):
-            self.func.args[i].name = f"{self.func.name}.{node.parameter_list[i].name}"
+            parameter_name = f"{self.func.name}.{node.parameter_list[i].name}"
+            self.func.args[i].name = parameter_name
+            print("que chuchas es esto?: ", self.func.args[i])
+            self.parametersTable[parameter_name] = self.func.args[i]
 
         entry = self.func.append_basic_block("entry")
         self.builder = ir.IRBuilder(entry)
@@ -427,6 +432,10 @@ class IRGenerator(Visitor):
             node.statements.accept(self)
         
     def visit_assignment(self, node: Assignment) -> None:
+        #TODO: Si assignment es un binaryOp, ignoralo, no hagas nada o haz
+        # que se handlee de tal forma que en el stack no quede insertada la operacion
+        # pero si se agregue al codegen?
+
         node.rhs.accept(self)
         rhs = self.stack.pop()
         # Está cool que si esta linea falla eso significa que se está
@@ -491,13 +500,17 @@ class IRGenerator(Visitor):
     
     def visit_function_call_statement(self, node: FunctionCallStatement):
         
+        print("los args: ", node.arguments_list)
         arg_n = len(node.arguments_list)
         args = []
         for i in range(arg_n):
             node.arguments_list[i].accept(self)
             args.append(self.stack.pop())
         
-        self.builder.call(self.functionTable[node.function_to_call], args)
+        
+        self.stack.append(self.builder.call(self.functionTable[node.function_to_call], args))
+        
+        #self.builder.call(self.functionTable[node.function_to_call], args)
         
     def visit_return_statement(self, node: ReturnStatement):
         
@@ -516,7 +529,11 @@ class IRGenerator(Visitor):
     
     def visit_variable(self, node: Variable) -> None:
         name = f"{self.func.name}.{node.name}"
-        self.stack.append(self.builder.load(self.symbolTable[name]))
+        #print("lo que se va a loadear", self.symbolTable[name])
+        if name in self.parametersTable:
+            self.stack.append(self.parametersTable[name])
+        else:
+            self.stack.append(self.builder.load(self.symbolTable[name]))
 
     def visit_binary_op(self, node: BinaryOp) -> None:
         node.lhs.accept(self)
@@ -551,35 +568,22 @@ module = ir.Module(name="prog")
 
 
 data =  '''
-        int f(int a, int b){
-            float f;
-            f = 1.2;
-            return 0;
-        }
-
-        int f2(int b){
-            return 1;
+        int factorial(int n) {
+            int f;
+            int i;
+            f = 1;
+            i = 1;
+            while (i <= n) {
+                f = f * i;
+                i = i + 1;
+            }
+            return f;
         }
 
         int main() {
-            int f;
-            int i;
-            int n;
-            float e;
-
-            n = 5;
-            f = 1;
-            i = 100;
-
-            f(1, 2);
-            f2(2);
-
-            for(i = 0; i < 7; i = i + 2){
-                i = i;
-            }
-
-            return i;
-
+            int r;
+            r = factorial(5);
+            return r;
         }
         '''
 lexer = lex.lex()
