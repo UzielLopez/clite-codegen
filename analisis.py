@@ -3,7 +3,8 @@ import ply.lex as lex
 import ply.yacc as yacc
 from arbol import (Literal, Variable, Visitor, BinaryOp, Declaration,
                    Declarations, Assignment, Statements, Program,
-                   IfElse, WhileStatement)
+                   IfElse, WhileStatement, ReturnStatement, Parameter, Function,
+                   Functions)
 from llvmlite import ir
 
 literals = ['+','-','*','/', '%', '(', ')', '{', '}', '<', '>', '=', ';', ',', '!']
@@ -12,10 +13,8 @@ reserved = {
     'float' : 'FLOAT',
     'if' : 'IF',
     'int' : 'INT',
-    'float' : 'FLOAT',
     'bool' : 'BOOL',
     'char' : 'CHAR',
-    'main' : 'MAIN',
     'return' : 'RETURN',
     'while' : 'WHILE'
 }
@@ -36,13 +35,13 @@ def t_ID(t):
      t.type = reserved.get(t.value,'ID')    # Check for reserved words
      return t
 
-def t_INTLIT(t):
-    r'[0-9]+'
-    return t
-
 def t_FLOATLIT(t):
     r'(\+|\-)?(\d+)?(((0x|X)([0-9a-fA-F])?(\.?([0-9a-fA-F])?(p|P)(\+|\-)?\d+|(\.([0-9a-fA-F])?)))|((\.?(\d+)?(e|E)(\+|\-)?(\d+)|(\.(\d+)?))))(l|L|f|F)?'
     # NOTE: técnicamente Python solo va a poder castear los floats en C que puuedan existir en Python con el mismo formato
+    return t
+
+def t_INTLIT(t):
+    r'[0-9]+'
     return t
 
 def t_newline(t):
@@ -55,11 +54,47 @@ def t_error(t):
 
 
 # ========================
-def p_Program(p):
+def p_Functions(p):
     '''
-    Program : INT MAIN '(' ')' '{' Declarations Statements '}'
+    Functions : Function Functions
+              | empty
     '''
-    p[0] = Program( p[6], p[7] )
+    if len(p) > 2:
+        p[0] = Functions(p[1], p[2])
+
+def p_Function(p):
+    '''
+    Function : Type ID '(' ParameterList ')' '{' Declarations Statements '}'
+             | Type ID '(' ')' '{' Declarations Statements '}'
+    '''
+    if len(p) > 9:
+        p[0] = Function(p[1], p[2], p[4], p[7], p[8])
+    else:
+        print("function: ", p[1], p[2], [], p[6], p[7])
+        p[0] = Function(p[1], p[2], [], p[6], p[7])
+
+def p_ParameterList(p):
+    '''
+    ParameterList : Parameter
+                  | ParameterList ',' Parameter
+    '''
+    if len(p) > 3:
+        p[0] = p[1].append(p[3])
+    else:
+        p[0] = [p[1]]
+
+def p_Parameter(p):
+    '''
+    Parameter : Type ID
+    '''
+    if p[1] == "INT":
+        type = intType
+    
+    elif p[1] == "FLOAT":
+        type = floatType
+
+    p[0] = Parameter(type, p[2])
+
 
 def p_empty(p):
     '''
@@ -79,7 +114,7 @@ def p_Declaration(p):
     '''
     Declaration : Type ID ';'
     '''
-    p[0] = Declaration(p[2], p[1].upper())
+    p[0] = Declaration(p[2], p[1])
 
 def p_Type(p):
     '''
@@ -88,7 +123,7 @@ def p_Type(p):
          | FLOAT
          | CHAR
     '''
-    p[0] = p[1]
+    p[0] = p[1].upper()
 
 def p_Statements(p):
     '''
@@ -98,6 +133,7 @@ def p_Statements(p):
     if len(p) > 2:
         p[0] = Statements(p[1], p[2])
 
+#TODO: Para añadir llamadas a funciones, añadir e implementar FunctionCallStatement
 def p_Statement(p):
     '''
     Statement : ';'
@@ -105,6 +141,7 @@ def p_Statement(p):
               | Assignment
               | IfStatement
               | WhileStatement
+              | ReturnStatement
     '''
     p[0] = p[1]
 
@@ -135,6 +172,16 @@ def p_WhileStatement(p):
     WhileStatement : WHILE '(' Expression ')' Statement
     '''
     p[0] = WhileStatement(p[3], p[5])
+
+def p_ReturnStatement(p):
+    '''
+    ReturnStatement : RETURN Expression ';'
+                    | RETURN ';'
+    '''
+    if len(p) > 3:
+        p[0] = ReturnStatement(p[2])
+    else:
+        p[0] = ReturnStatement(None)
 
 def p_Expression(p):
     '''
@@ -197,6 +244,7 @@ def p_Addition(p):
     Addition : Term
              | Addition AddOp Term
     '''
+    
     if len(p) > 2:
         p[0] = BinaryOp(p[2], p[1], p[3])
     else:
@@ -251,7 +299,6 @@ def p_UnaryOp(p):
 
 def p_Primary_FloatLit(p):
     'Primary : FLOATLIT'
-    print("parceó un floatlit")
     p[0] = Literal(p[1], 'FLOAT')
 
 def p_Primary_IntLit(p):
@@ -275,10 +322,12 @@ intType = ir.IntType(32)
 floatType = ir.FloatType()
 
 class IRGenerator(Visitor):
-    def __init__(self, builder: ir.IRBuilder):
+    def __init__(self, module):
         self.stack = []
         self.symbolTable = dict()
-        self.builder = builder
+        self.builder = None
+        self.func = None
+        self.module = module
         self._tmp_count = 0
 
     def visit_program(self, node: Program) -> None:
@@ -297,22 +346,58 @@ class IRGenerator(Visitor):
                     node.elseSt.accept(self)
 
     def visit_declaration(self, node: Declaration) -> None:
+        name = f"{self.func.name}.{node.name}"
+        print("name: ", name)
         if node.type == 'INT':
-            variable = self.builder.alloca(intType, name=node.name)
-            self.symbolTable[node.name] = variable
+            variable = self.builder.alloca(intType, name=name)
+            self.symbolTable[name] = variable
         if node.type == 'FLOAT':
-            variable = self.builder.alloca(floatType, name=node.name)
-            self.symbolTable[node.name] = variable
+            variable = self.builder.alloca(floatType, name=name)
+            self.symbolTable[name] = variable
     
     def visit_declarations(self, node: Declarations) -> None:
         node.declaration.accept(self)
         if node.declarations != None:
             node.declarations.accept(self)
+    
+    def visit_functions(self, node: Functions) -> None:
+        node.function.accept(self)
+        if node.functions != None:
+            node.functions.accept(self)
+
+    def visit_function(self, node: Function) -> None:
+        # Calcular el tipo de función
+        if node.return_type == 'INT':
+            return_type = intType
+        
+        elif node.return_type == 'FLOAT':
+            return_type = floatType
+        
+        
+        parameters = [parameter.type for parameter in node.parameter_list]
+        function_type = ir.FunctionType(return_type, parameters)
+
+    
+        self.func = ir.Function(self.module, function_type, node.name)
+        # Nombrar los parámetros de entrada de la función
+        for i in range(len(parameters)):
+            self.func.args[i].name = f"{self.func.name}.{node.parameter_list[i].name}"
+
+        entry = self.func.append_basic_block("entry")
+        self.builder = ir.IRBuilder(entry)
+
+        if node.declarations:
+            node.declarations.accept(self)
+        if node.statements:
+            node.statements.accept(self)
         
     def visit_assignment(self, node: Assignment) -> None:
         node.rhs.accept(self)
         rhs = self.stack.pop()
-        self.builder.store(rhs, self.symbolTable[node.lhs])
+        # Está cool que si esta linea falla eso significa que se está
+        # haciendo referencia a algo out of scope c:
+        name = f"{self.func.name}.{node.lhs}"
+        self.builder.store(rhs, self.symbolTable[name])
 
     def visit_statements(self, node: Statements) -> None:
         node.statement.accept(self)
@@ -321,9 +406,9 @@ class IRGenerator(Visitor):
     
     def visit_while_statement(self, node: WhileStatement) -> None:
 
-        whileHead = func.append_basic_block('while-head')
-        whileBody = func.append_basic_block('while-body')
-        whileExit = func.append_basic_block('while-exit')
+        whileHead = self.func.append_basic_block('while-head')
+        whileBody = self.func.append_basic_block('while-body')
+        whileExit = self.func.append_basic_block('while-exit')
 
         self.builder.branch(whileHead)
         #TODO: c Branch espera que la condición se evalue a un
@@ -339,9 +424,17 @@ class IRGenerator(Visitor):
         node.body.accept(self)
         self.builder.branch(whileHead)
         self.builder.position_at_start(whileExit)
+    
+    def visit_return_statement(self, node: ReturnStatement):
+        
+        if node.expression:
+            node.expression.accept(self)
+            return_expression = self.stack.pop()
+            self.builder.ret(return_expression)
+        else:
+            self.builder.ret_void()
 
     def visit_literal(self, node: Literal) -> None:
-        # TODO: Muévele aquí cuando ya hayas implementado los otros tipos 
         if node.type == 'INT':
             self.stack.append(intType(node.value))
         elif node.type == 'FLOAT':
@@ -375,14 +468,21 @@ class IRGenerator(Visitor):
 
 module = ir.Module(name="prog")
 
-fnty = ir.FunctionType(intType, [])
-func = ir.Function(module, fnty, name='main')
+#fnty = ir.FunctionType(intType, [])
+#func = ir.Function(module, fnty, name='main')
 
-entry = func.append_basic_block('entry')
-builder = ir.IRBuilder(entry)
+#entry = func.append_basic_block('entry')
+#builder = ir.IRBuilder(entry)
 
 
 data =  '''
+
+        int f(int a){
+            float f;
+            f = 1.2;
+            return 0;
+        }
+
         int main() {
             int f;
             int i;
@@ -391,20 +491,9 @@ data =  '''
 
             n = 5;
             f = 1;
-            i = 1;
-            e = 2.5;
-
-            while (i <= n) {
-                f = i;
-                i = i + 1;
-            }
-            
-            f = 2;
             i = 5;
 
-            if( 1 && 1){
-                i = 55;
-            }
+            return 0;
 
         }
         '''
@@ -413,7 +502,7 @@ parser = yacc.yacc()
 ast = parser.parse(data)
 print("ast => ",ast)
 
-visitor = IRGenerator(builder)
+visitor = IRGenerator(module)
 ast.accept(visitor)
 # builder.ret(visitor.stack.pop())
 

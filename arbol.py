@@ -64,6 +64,14 @@ class WhileStatement(ASTNode):
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_while_statement(self)
 
+class ReturnStatement(ASTNode):
+    def __init__(self, expression: any) -> None:
+        self.expression = expression
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_return_statement(self)
+        
+
 class Declaration(ASTNode):
     def __init__(self, name: str, type: str) -> None:
         self.name = name
@@ -97,6 +105,33 @@ class Statements(ASTNode):
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_statements(self)
 
+class Parameter(ASTNode):
+    def __init__(self, type: any, name: str) -> None:
+        self.type = type
+        self.name = name
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_parameter(self)
+
+class Function(ASTNode):
+    def __init__(self, return_type: str, name: str, parameter_list: list, declarations: Declarations, statements: Statements) -> None:
+        self.return_type = return_type
+        self.name = name
+        self.parameter_list = parameter_list
+        self.declarations = declarations
+        self.statements = statements
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_function(self)
+
+
+class Functions(ASTNode):
+    def __init__(self, function: Function, functions: Functions) -> None:
+        self.function = function
+        self.functions = functions
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_functions(self)
+        
 
 class Visitor(ABC):
     @abstractmethod
