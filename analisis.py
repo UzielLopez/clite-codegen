@@ -157,7 +157,6 @@ def p_Block(p):
 def p_Assignment(p):
     '''
     Assignment : ID '=' Expression ';'
-               | ID '=' FunctionCallStatement
     '''
     p[0] = Assignment(p[1], p[3])
 
