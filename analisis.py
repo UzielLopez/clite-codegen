@@ -4,7 +4,7 @@ import ply.yacc as yacc
 from arbol import (Literal, Variable, Visitor, BinaryOp, Declaration,
                    Declarations, Assignment, Statements, Program,
                    IfElse, WhileStatement, ReturnStatement, Parameter, Function,
-                   Functions)
+                   Functions, FunctionCallStatement)
 from llvmlite import ir
 
 literals = ['+','-','*','/', '%', '(', ')', '{', '}', '<', '>', '=', ';', ',', '!']
@@ -70,8 +70,30 @@ def p_Function(p):
     if len(p) > 9:
         p[0] = Function(p[1], p[2], p[4], p[7], p[8])
     else:
-        print("function: ", p[1], p[2], [], p[6], p[7])
         p[0] = Function(p[1], p[2], [], p[6], p[7])
+
+def p_FunctionCallStatement(p):
+    '''
+    FunctionCallStatement : ID '(' ArgumentsList ')' ';'
+                          | ID '(' ')' ';'
+    '''
+    if len(p) > 5:
+        p[0] = FunctionCallStatement(p[1], p[3])
+    else:
+        p[0] = FunctionCallStatement(p[1], [])
+
+
+def p_ArgumentsList(p):
+    '''
+    ArgumentsList : Expression
+                  |  ArgumentsList ',' Expression
+    '''
+    if len(p) > 3:
+        p[1].append(p[3])
+        p[0] = p[1]
+    else:
+        p[0] = [p[1]]
+
 
 def p_ParameterList(p):
     '''
@@ -79,7 +101,8 @@ def p_ParameterList(p):
                   | ParameterList ',' Parameter
     '''
     if len(p) > 3:
-        p[0] = p[1].append(p[3])
+        p[1].append(p[3])
+        p[0] = p[1]
     else:
         p[0] = [p[1]]
 
@@ -142,6 +165,7 @@ def p_Statement(p):
               | IfStatement
               | WhileStatement
               | ReturnStatement
+              | FunctionCallStatement
     '''
     p[0] = p[1]
 
@@ -325,6 +349,7 @@ class IRGenerator(Visitor):
     def __init__(self, module):
         self.stack = []
         self.symbolTable = dict()
+        self.functionTable = dict()
         self.builder = None
         self.func = None
         self.module = module
@@ -347,7 +372,6 @@ class IRGenerator(Visitor):
 
     def visit_declaration(self, node: Declaration) -> None:
         name = f"{self.func.name}.{node.name}"
-        print("name: ", name)
         if node.type == 'INT':
             variable = self.builder.alloca(intType, name=name)
             self.symbolTable[name] = variable
@@ -377,8 +401,9 @@ class IRGenerator(Visitor):
         parameters = [parameter.type for parameter in node.parameter_list]
         function_type = ir.FunctionType(return_type, parameters)
 
-    
+        
         self.func = ir.Function(self.module, function_type, node.name)
+        self.functionTable[node.name] = self.func
         # Nombrar los parámetros de entrada de la función
         for i in range(len(parameters)):
             self.func.args[i].name = f"{self.func.name}.{node.parameter_list[i].name}"
@@ -424,6 +449,22 @@ class IRGenerator(Visitor):
         node.body.accept(self)
         self.builder.branch(whileHead)
         self.builder.position_at_start(whileExit)
+    
+    def visit_function_call_statement(self, node: FunctionCallStatement):
+        
+
+        # Cuántas expresions tengo que evaluar?
+        arg_n = len(node.arguments_list)
+        args = []
+        for i in range(arg_n):
+            node.arguments_list[i].accept(self)
+            args.append(self.stack.pop())
+        print("args en function call: ", args)
+        
+        self.builder.call(self.functionTable[node.function_to_call], args)
+        
+
+        
     
     def visit_return_statement(self, node: ReturnStatement):
         
@@ -477,10 +518,14 @@ module = ir.Module(name="prog")
 
 data =  '''
 
-        int f(int a){
+        int f(int a, int b){
             float f;
             f = 1.2;
             return 0;
+        }
+
+        int f2(int b){
+            return 1;
         }
 
         int main() {
@@ -492,6 +537,9 @@ data =  '''
             n = 5;
             f = 1;
             i = 5;
+
+            f(1, 2);
+            f2(2);
 
             return 0;
 

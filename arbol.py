@@ -70,7 +70,14 @@ class ReturnStatement(ASTNode):
     
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_return_statement(self)
-        
+
+class FunctionCallStatement(ASTNode):
+    def __init__(self, function_to_call: str, arguments_list: list) -> None:
+        self.function_to_call = function_to_call
+        self.arguments_list = arguments_list
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_function_call_statement(self)
 
 class Declaration(ASTNode):
     def __init__(self, name: str, type: str) -> None:
