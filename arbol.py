@@ -155,3 +155,39 @@ class Visitor(ABC):
     @abstractmethod
     def visit_binary_op(self, node: BinaryOp) -> None:
         pass
+    @abstractmethod
+    def visit_program(self, node: Program) -> None:
+        pass
+    @abstractmethod
+    def visit_if_else(self, node: IfElse) -> None:
+        pass
+    @abstractmethod
+    def visit_while_statement(self, node: WhileStatement) -> None:
+        pass
+    @abstractmethod
+    def visit_for_statement(self, node: ForStatement) -> None:
+        pass
+    @abstractmethod
+    def visit_return_statement(self, node: ReturnStatement) -> None:
+        pass
+    @abstractmethod
+    def visit_function_call_statement(self, node: FunctionCallStatement) -> None:
+        pass
+    @abstractmethod
+    def visit_declaration(self, node: Declaration) -> None:
+        pass
+    @abstractmethod
+    def visit_declarations(self, node: Declarations) -> None:
+        pass
+    @abstractmethod
+    def visit_assignment(self, node: Assignment) -> None:
+        pass
+    @abstractmethod
+    def visit_statements(self, node: Statements) -> None:
+        pass
+    @abstractmethod
+    def visit_function(self, node: Function) -> None:
+        pass
+    @abstractmethod
+    def visit_functions(self, node: Functions) -> None:
+        pass

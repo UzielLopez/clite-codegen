@@ -457,10 +457,6 @@ class IRGenerator(Visitor):
         # que evaluan cosas que dan como resultado un bool en verdad
         # los operandos sean bool. tal vez tengas que castear
         self.builder.position_at_start(while_head)
-        print("tipo del head: ", type(node.head))
-        print("la cabeza del while lhs: ", type(node.head.lhs))
-        print("la cabeza del while rhs: ", type(node.head.rhs))
-        print("la cabeza del while op: ", node.head.op)
         node.head.accept(self) # Esto va a ser, at most, una expression
         head_expression = self.stack.pop()
         self.builder.cbranch(head_expression, while_body, while_exit)
@@ -554,10 +550,6 @@ class IRGenerator(Visitor):
         if lhs_type != rhs_type:
             raise Exception(f"Operations with missmatched operands are not implemented. lhs_type={lhs_type} and rhs_type={rhs_type}")
         
-        print("lhs: ", lhs, "   ||   rhs:", rhs)
-        print("lhs_type: ", lhs_type, "   ||   rhs:", rhs_type)
-        print("lhs_type: ", lhs_type, "   ||   intType:", intType)
-
         if lhs_type == intType or lhs_type == boolType:
             if node.op == '+':
                 self.stack.append(self.builder.add(lhs, rhs))
