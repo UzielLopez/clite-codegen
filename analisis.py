@@ -4,7 +4,7 @@ import ply.yacc as yacc
 from arbol import (Literal, Variable, Visitor, BinaryOp, Declaration,
                    Declarations, Assignment, Statements, Program,
                    IfElse, WhileStatement, ReturnStatement, Parameter, Function,
-                   Functions, FunctionCallStatement)
+                   Functions, FunctionCallStatement, ForStatement)
 from llvmlite import ir
 
 literals = ['+','-','*','/', '%', '(', ')', '{', '}', '<', '>', '=', ';', ',', '!']
@@ -16,7 +16,8 @@ reserved = {
     'bool' : 'BOOL',
     'char' : 'CHAR',
     'return' : 'RETURN',
-    'while' : 'WHILE'
+    'while' : 'WHILE',
+    'for' : 'FOR'
 }
 
 tokens = list(reserved.values()) + ['ID', 'INTLIT', 'FLOATLIT','LE', 'GE', 'EQ', 'NEQ', 'AND', 'OR']
@@ -71,29 +72,6 @@ def p_Function(p):
         p[0] = Function(p[1], p[2], p[4], p[7], p[8])
     else:
         p[0] = Function(p[1], p[2], [], p[6], p[7])
-
-def p_FunctionCallStatement(p):
-    '''
-    FunctionCallStatement : ID '(' ArgumentsList ')' ';'
-                          | ID '(' ')' ';'
-    '''
-    if len(p) > 5:
-        p[0] = FunctionCallStatement(p[1], p[3])
-    else:
-        p[0] = FunctionCallStatement(p[1], [])
-
-
-def p_ArgumentsList(p):
-    '''
-    ArgumentsList : Expression
-                  |  ArgumentsList ',' Expression
-    '''
-    if len(p) > 3:
-        p[1].append(p[3])
-        p[0] = p[1]
-    else:
-        p[0] = [p[1]]
-
 
 def p_ParameterList(p):
     '''
@@ -156,13 +134,14 @@ def p_Statements(p):
     if len(p) > 2:
         p[0] = Statements(p[1], p[2])
 
-#TODO: Para añadir llamadas a funciones, añadir e implementar FunctionCallStatement
+
 def p_Statement(p):
     '''
     Statement : ';'
               | Block
               | Assignment
               | IfStatement
+              | ForStatement
               | WhileStatement
               | ReturnStatement
               | FunctionCallStatement
@@ -178,6 +157,7 @@ def p_Block(p):
 def p_Assignment(p):
     '''
     Assignment : ID '=' Expression ';'
+               | ID '=' FunctionCallStatement
     '''
     p[0] = Assignment(p[1], p[3])
 
@@ -190,6 +170,17 @@ def p_IfStatement(p):
         p[0] = IfElse(p[3], p[5], p[7])
     else:
         p[0] = IfElse(p[3], p[5], None)
+
+def p_ForStatement(p):
+    '''
+    ForStatement : FOR '(' ID '=' Expression ';' Expression ';' ID '=' Expression ')' Statement
+    '''
+    # Como es una simplificación del lenguaje C, en este loop solo 
+    # puede haber una variable de control, la cual debe ser la ID
+    # de esta producción. Se espera que esa misma variable esté
+    # presente en las dos otras secciones de del for statement
+    p[0] = ForStatement(p[3], p[5], p[7], p[11], p[13])
+    
 
 def p_WhileStatement(p):
     '''
@@ -206,6 +197,28 @@ def p_ReturnStatement(p):
         p[0] = ReturnStatement(p[2])
     else:
         p[0] = ReturnStatement(None)
+
+def p_FunctionCallStatement(p):
+    '''
+    FunctionCallStatement : ID '(' ArgumentsList ')' ';'
+                          | ID '(' ')' ';'
+    '''
+    if len(p) > 5:
+        p[0] = FunctionCallStatement(p[1], p[3])
+    else:
+        p[0] = FunctionCallStatement(p[1], [])
+
+
+def p_ArgumentsList(p):
+    '''
+    ArgumentsList : Expression
+                  | ArgumentsList ',' Expression
+    '''
+    if len(p) > 3:
+        p[1].append(p[3])
+        p[0] = p[1]
+    else:
+        p[0] = [p[1]]
 
 def p_Expression(p):
     '''
@@ -390,18 +403,16 @@ class IRGenerator(Visitor):
             node.functions.accept(self)
 
     def visit_function(self, node: Function) -> None:
-        # Calcular el tipo de función
+
         if node.return_type == 'INT':
             return_type = intType
         
         elif node.return_type == 'FLOAT':
             return_type = floatType
         
-        
         parameters = [parameter.type for parameter in node.parameter_list]
         function_type = ir.FunctionType(return_type, parameters)
 
-        
         self.func = ir.Function(self.module, function_type, node.name)
         self.functionTable[node.name] = self.func
         # Nombrar los parámetros de entrada de la función
@@ -431,41 +442,64 @@ class IRGenerator(Visitor):
     
     def visit_while_statement(self, node: WhileStatement) -> None:
 
-        whileHead = self.func.append_basic_block('while-head')
-        whileBody = self.func.append_basic_block('while-body')
-        whileExit = self.func.append_basic_block('while-exit')
+        while_head = self.func.append_basic_block('while-head')
+        while_body = self.func.append_basic_block('while-body')
+        while_exit = self.func.append_basic_block('while-exit')
 
-        self.builder.branch(whileHead)
+        self.builder.branch(while_head)
         #TODO: c Branch espera que la condición se evalue a un
         #IntType(1), por lo que para que las expresiones que no dan
         # como resultado un bool debes de asegurarte que en las expresiones
         # que evaluan cosas que dan como resultado un bool en verdad
         # los operandos sean bool. tal vez tengas que castear
-        self.builder.position_at_start(whileHead)
+        self.builder.position_at_start(while_head)
         node.head.accept(self) # Esto va a ser, at most, una expression
         head_expression = self.stack.pop()
-        self.builder.cbranch(head_expression, whileBody, whileExit)
-        self.builder.position_at_start(whileBody)
+        self.builder.cbranch(head_expression, while_body, while_exit)
+        self.builder.position_at_start(while_body)
         node.body.accept(self)
-        self.builder.branch(whileHead)
-        self.builder.position_at_start(whileExit)
+        self.builder.branch(while_head)
+        self.builder.position_at_start(while_exit)
+    
+    def visit_for_statement(self, node: ForStatement) -> None:
+        # Handlear el assignment de la init_expression a la variable control_variable
+        node.init_expression.accept(self)
+        init_expression = self.stack.pop()
+        control_variable_name = f"{self.func.name}.{node.control_variable}"
+        self.builder.store(init_expression, self.symbolTable[control_variable_name])
+
+        # Handlear la cond_expression como el head del while
+        for_condition = self.func.append_basic_block('for-condition')
+        for_body = self.func.append_basic_block('for-body')
+        for_exit = self.func.append_basic_block('for-exit')
+
+        self.builder.branch(for_condition)
+        self.builder.position_at_start(for_condition)
+
+        node.cond_expression.accept(self)
+        cond_expression = self.stack.pop()
+        self.builder.cbranch(cond_expression, for_body, for_exit)
+
+        self.builder.position_at_start(for_body)
+        # Hacer la operaciíon de loop_expression
+        node.loop_expression.accept(self)
+        loop_expression = self.stack.pop()
+        self.builder.store(loop_expression, self.symbolTable[control_variable_name])
+        # Visitar statement
+        node.statement.accept(self)
+        self.builder.branch(for_condition)
+        self.builder.position_at_start(for_exit)
     
     def visit_function_call_statement(self, node: FunctionCallStatement):
         
-
-        # Cuántas expresions tengo que evaluar?
         arg_n = len(node.arguments_list)
         args = []
         for i in range(arg_n):
             node.arguments_list[i].accept(self)
             args.append(self.stack.pop())
-        print("args en function call: ", args)
         
         self.builder.call(self.functionTable[node.function_to_call], args)
         
-
-        
-    
     def visit_return_statement(self, node: ReturnStatement):
         
         if node.expression:
@@ -482,7 +516,8 @@ class IRGenerator(Visitor):
             self.stack.append(floatType(node.value))
     
     def visit_variable(self, node: Variable) -> None:
-        self.stack.append(self.builder.load(self.symbolTable[node.name]))
+        name = f"{self.func.name}.{node.name}"
+        self.stack.append(self.builder.load(self.symbolTable[name]))
 
     def visit_binary_op(self, node: BinaryOp) -> None:
         node.lhs.accept(self)
@@ -517,7 +552,6 @@ module = ir.Module(name="prog")
 
 
 data =  '''
-
         int f(int a, int b){
             float f;
             f = 1.2;
@@ -536,12 +570,16 @@ data =  '''
 
             n = 5;
             f = 1;
-            i = 5;
+            i = 100;
 
             f(1, 2);
             f2(2);
 
-            return 0;
+            for(i = 0; i < 7; i = i + 2){
+                i = i;
+            }
+
+            return i;
 
         }
         '''
@@ -558,4 +596,17 @@ print(module)
 
 # %%
 
+
+
+
+import runtime as rt
+from ctypes import CFUNCTYPE, c_int
+
+engine = rt.create_execution_engine()
+mod = rt.compile_ir(engine, str(module))
+func_ptr = engine.get_function_address("main")
+
+cfunc = CFUNCTYPE(c_int)(func_ptr)
+res = cfunc()
+print(f"main() devolvió:", res)
 

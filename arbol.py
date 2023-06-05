@@ -64,6 +64,17 @@ class WhileStatement(ASTNode):
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_while_statement(self)
 
+class ForStatement(ASTNode):
+    def __init__(self, control_variable: str, init_expression: any, cond_expression: any, loop_expression: any, statement: any) -> None:
+        self.control_variable = control_variable
+        self.init_expression = init_expression
+        self.cond_expression = cond_expression
+        self.loop_expression = loop_expression
+        self.statement = statement
+    
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_for_statement(self)
+        
 class ReturnStatement(ASTNode):
     def __init__(self, expression: any) -> None:
         self.expression = expression
