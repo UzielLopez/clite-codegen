@@ -354,6 +354,7 @@ def p_Primary_Expression(p):
 # %%
 intType = ir.IntType(32)
 floatType = ir.FloatType()
+boolType = ir.IntType(1)
 
 class IRGenerator(Visitor):
     def __init__(self, module):
@@ -417,7 +418,6 @@ class IRGenerator(Visitor):
         for i in range(len(parameters)):
             parameter_name = f"{self.func.name}.{node.parameter_list[i].name}"
             self.func.args[i].name = parameter_name
-            print("que chuchas es esto?: ", self.func.args[i])
             self.parametersTable[parameter_name] = self.func.args[i]
 
         entry = self.func.append_basic_block("entry")
@@ -457,6 +457,10 @@ class IRGenerator(Visitor):
         # que evaluan cosas que dan como resultado un bool en verdad
         # los operandos sean bool. tal vez tengas que castear
         self.builder.position_at_start(while_head)
+        print("tipo del head: ", type(node.head))
+        print("la cabeza del while lhs: ", type(node.head.lhs))
+        print("la cabeza del while rhs: ", type(node.head.rhs))
+        print("la cabeza del while op: ", node.head.op)
         node.head.accept(self) # Esto va a ser, at most, una expression
         head_expression = self.stack.pop()
         self.builder.cbranch(head_expression, while_body, while_exit)
@@ -531,23 +535,68 @@ class IRGenerator(Visitor):
         node.rhs.accept(self)
         rhs = self.stack.pop()
         lhs = self.stack.pop()
-        if node.op == '+':
-            self.stack.append(self.builder.add(lhs, rhs))
-        elif node.op == '*':
-            self.stack.append(self.builder.mul(lhs, rhs))
-        elif node.op == '-':
-            self.stack.append(self.builder.sub(lhs, rhs))
-        elif node.op == '/':
-            self.stack.append(self.builder.sdiv(lhs, rhs))
-        elif node.op == '%':
-            self.stack.append(self.builder.srem(lhs, rhs))
-        elif node.op == '>' or node.op == '<' or node.op == '>=' \
-            or node.op == '<=' or node.op == '==' or node.op == '!=':
-            self.stack.append(self.builder.icmp_signed(node.op, lhs, rhs))
-        elif node.op == '&&':
-            self.stack.append(self.builder.and_(lhs, rhs)) # TODO: Esto hace un and a nivel de bits. Es lo que queremos?
-        elif node.op == '||':
-            self.stack.append(self.builder.or_(lhs, rhs))
+
+        # Checar si la operación tiene operandos del mismo tipo.
+        # NOTE: al ser una versión simplificada de C, decidimos solo hacer operaciones
+        # cuando los dos operandos son del mismo tipo. No casteamos nada al momento de hacer la operación.
+        rhs_type = None
+        if isinstance(rhs, ir.Function):
+            rhs_type = rhs.function_type.return_type
+        else:
+            rhs_type = rhs.type
+        
+        lhs_type = None
+        if isinstance(lhs, ir.Function):
+            lhs_type = lhs.function_type.return_type
+        else:
+            lhs_type = lhs.type
+         
+        if lhs_type != rhs_type:
+            raise Exception(f"Operations with missmatched operands are not implemented. lhs_type={lhs_type} and rhs_type={rhs_type}")
+        
+        print("lhs: ", lhs, "   ||   rhs:", rhs)
+        print("lhs_type: ", lhs_type, "   ||   rhs:", rhs_type)
+        print("lhs_type: ", lhs_type, "   ||   intType:", intType)
+
+        if lhs_type == intType or lhs_type == boolType:
+            if node.op == '+':
+                self.stack.append(self.builder.add(lhs, rhs))
+            elif node.op == '*':
+                self.stack.append(self.builder.mul(lhs, rhs))
+            elif node.op == '-':
+                self.stack.append(self.builder.sub(lhs, rhs))
+            elif node.op == '/':
+                self.stack.append(self.builder.sdiv(lhs, rhs))
+            elif node.op == '%':
+                self.stack.append(self.builder.srem(lhs, rhs))
+            elif node.op == '>' or node.op == '<' or node.op == '>=' \
+                or node.op == '<=' or node.op == '==' or node.op == '!=':
+                self.stack.append(self.builder.icmp_signed(node.op, lhs, rhs))
+            elif node.op == '&&':
+                print("AND OPERATION")
+                self.stack.append(self.builder.and_(lhs, rhs)) # TODO: Esto hace un and a nivel de bits. Es lo que queremos?
+            elif node.op == '||':
+                self.stack.append(self.builder.or_(lhs, rhs)) # TODO: Esto hace un and a nivel de bits. Es lo que queremos?
+
+        elif lhs_type == floatType:
+            if node.op == '+':
+                self.stack.append(self.builder.fadd(lhs, rhs))
+            elif node.op == '*':
+                self.stack.append(self.builder.fmul(lhs, rhs))
+            elif node.op == '-':
+                self.stack.append(self.builder.fsub(lhs, rhs))
+            elif node.op == '/':
+                self.stack.append(self.builder.fdiv(lhs, rhs))
+            elif node.op == '%':
+                self.stack.append(self.builder.frem(lhs, rhs))
+            elif node.op == '>' or node.op == '<' or node.op == '>=' \
+                or node.op == '<=' or node.op == '==' or node.op == '!=':
+                self.stack.append(self.builder.icmp_signed(node.op, lhs, rhs))
+            elif node.op == '&&':
+                print("AND OPERATION")
+                self.stack.append(self.builder.and_(lhs, rhs)) # TODO: Esto hace un and a nivel de bits. Es lo que queremos?
+            elif node.op == '||':
+                self.stack.append(self.builder.or_(lhs, rhs)) # TODO: Esto hace un and a nivel de bits. Es lo que queremos?
 
 module = ir.Module(name="prog")
 
@@ -557,7 +606,7 @@ data =  '''
             int i;
             f = 1;
             i = 1;
-            while (i <= n) {
+            while ((i <= n) && (1 != 8)) {
                 f = f * i;
                 i = i + 1;
             }
@@ -566,7 +615,9 @@ data =  '''
 
         int main() {
             int r;
-            r = factorial(5);
+            float f;
+            f = 1.2 + 0.4;
+            r = (factorial(5)) + (factorial(1));
             return r;
         }
         '''
