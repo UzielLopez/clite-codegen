@@ -3,8 +3,9 @@ import ply.lex as lex
 import ply.yacc as yacc
 from arbol import (Literal, Variable, BinaryOp, Declaration,
                    Declarations, Assignment, Statements,
-                   IfElse, WhileStatement, ReturnStatement, Parameter, Function,
-                   Functions, FunctionCallStatement, ForStatement)
+                   IfElse, WhileStatement, ReturnStatement,
+                   Parameter, Function, Functions, FunctionCallStatement,
+                   ForStatement, Factor)
 from llvmlite import ir
 
 from ir_generator import IRGenerator
@@ -94,7 +95,7 @@ def p_Parameter(p):
         type = ir.IntType(32)
     
     elif p[1] == "FLOAT":
-        type = ir.floatType(32)
+        type = ir.FloatType()
 
     p[0] = Parameter(type, p[2])
 
@@ -312,21 +313,17 @@ def p_MulOp(p):
     '''
     p[0] = p[1]
 
+
 def p_Factor(p):
-    '''
+    """
     Factor : Primary
            | UnaryOp Primary
-    '''
-    #TODO: Recuerda que esto es mejor handlearlo con las operaciones
-    # de ir
-    if len(p) > 2:
-        if p[1] == '-':
-            p[2].value = -p[2].value
-        else:
-            p[2].value = int(not(-p[2].value))
-        p[0] = p[2]
-    else:
+    """
+
+    if len(p) == 2:
         p[0] = p[1]
+    else:
+        p[0] = Factor(p[1], p[2])
 
 def p_UnaryOp(p):
     '''
@@ -358,25 +355,17 @@ def p_Primary_Expression(p):
 module = ir.Module(name="prog")
 
 data =  '''
-        int factorial(int n) {
-            int f;
-            int i;
-            f = 1;
-            i = 1;
-            while ((i <= n) && (1 != 8)) {
-                f = f * i;
-                i = i + 1;
-            }
-            return f;
-        }
-
-        int main() {
-            int r;
-            float f;
-            f = 1.2 + 0.4;
-            r = (factorial(5)) + (factorial(1));
-            return r;
-        }
+int main() {
+    int f;
+    int i;
+    int n;
+    float e;
+    n = 5;
+    f = n;
+    i = 100;
+    e = 1.0 + 2.4 + 1;
+    return n;
+}
         '''
 lexer = lex.lex()
 parser = yacc.yacc()

@@ -1,7 +1,8 @@
 from arbol import (Literal, Variable, Visitor, BinaryOp, Declaration,
                    Declarations, Assignment, Statements, Program,
                    IfElse, WhileStatement, ReturnStatement, Function,
-                   Functions, FunctionCallStatement, ForStatement)
+                   Functions, FunctionCallStatement, ForStatement,
+                   Factor)
 from llvmlite import ir
 
 
@@ -81,9 +82,6 @@ class IRGenerator(Visitor):
             node.statements.accept(self)
         
     def visit_assignment(self, node: Assignment) -> None:
-        #TODO: Si assignment es un binaryOp, ignoralo, no hagas nada o haz
-        # que se handlee de tal forma que en el stack no quede insertada la operacion
-        # pero si se agregue al codegen?
         node.rhs.accept(self)
         rhs = self.stack.pop()
         # Está cool que si esta linea falla eso significa que se está
@@ -95,6 +93,19 @@ class IRGenerator(Visitor):
         node.statement.accept(self)
         if node.statements != None:
             node.statements.accept(self)
+
+    def visit_factor(self, node: Factor) -> None: #needs float
+        node.value.accept(self)
+        value = self.stack.pop()
+
+        if node.type == '!':
+            if node.value.type == 'INT':
+                self.stack.append(self.builder.not_(value))
+        elif node.type == '-':
+            if node.value.type == 'INT':
+                self.stack.append(self.builder.neg(value))
+            elif node.value.type == 'FLOAT':
+                self.stack.append(self.builder.fneg(value))
     
     def visit_while_statement(self, node: WhileStatement) -> None:
 
@@ -184,6 +195,7 @@ class IRGenerator(Visitor):
         rhs_type = None
         if isinstance(rhs, ir.Function):
             rhs_type = rhs.function_type.return_type
+            
         else:
             rhs_type = rhs.type
         
@@ -194,7 +206,16 @@ class IRGenerator(Visitor):
             lhs_type = lhs.type
          
         if lhs_type != rhs_type:
-            raise Exception(f"Operations with missmatched operands are not implemented. lhs_type={lhs_type} and rhs_type={rhs_type}")
+            # Siempre hacemos el casteo a float. 
+            # Ya después en visit_assignment se hace toma
+            # la decisión si se queda como float o se pasa a entero
+            if lhs_type == self.floatType:
+                rhs = rhs.sitofp(self.floatType)
+            else:
+                print("conversion")
+                lhs = lhs.sitofp(self.floatType)
+
+            #raise Exception(f"Operations with missmatched operands are not implemented. lhs_type={lhs_type} and rhs_type={rhs_type}")
         
         if lhs_type == self.intType or lhs_type == self.boolType:
             if node.op == '+':

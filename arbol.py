@@ -137,6 +137,14 @@ class Function(ASTNode):
     def accept(self, visitor: Visitor) -> None:
         visitor.visit_function(self)
 
+class Factor(ASTNode):
+    def __init__(self, type: str, value: str) -> None:
+        self.value = value
+        self.type = type
+
+    def accept(self, visitor: Visitor):
+        visitor.visit_factor(self)
+
 class Functions(ASTNode):
     def __init__(self, function: Function, functions: Functions) -> None:
         self.function = function
